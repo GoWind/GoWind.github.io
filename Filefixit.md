@@ -13,12 +13,12 @@ For e.g. if /sha/bang exists and /sha/bang/boom/bong and /sha/bang/boom/buff hav
 only /sha/bang and reports the no. of directories to be created as 4 and not 3.
 
 Having warned you about this bug, I built a program using python dictionaries to represent the directory tree and then return the
-number of directories to be created
+number of directories to be created.
 
 ```python
-def maketree(paths):
-	d = {}
-	for path in paths:
+	def maketree(paths):
+		d = {}
+		for path in paths:
 		y = path.split('/')[1:]
 		curfold = d
 		for folder in y:

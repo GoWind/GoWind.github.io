@@ -13,11 +13,12 @@ common ancestor.</p>
 only /sha/bang and reports the no. of directories to be created as 4 and not 3.</p>
 
 <p>Having warned you about this bug, I built a program using python dictionaries to represent the directory tree and then return the
-number of directories to be created
-```
-    def maketree(paths):
-        d = {}
-        for path in paths:
+number of directories to be created</p>
+
+<p>```python
+def maketree(paths):
+    d = {}
+    for path in paths:
         y = path.split('/')[1:]
         curfold = d
         for folder in y:
@@ -27,7 +28,7 @@ number of directories to be created
                 newf = {}
                 curfold[folder] = newf
                 curfold = newf
-        return d</p>
+    return d</p>
 
 <pre><code>def printtree(d):
     if d.keys() is None:
@@ -52,12 +53,14 @@ def tomake(dirtree,paths):
     return sumd
 </code></pre>
 
-<p><code>
-Here is the testing code
-</code>
-    if <strong>name</strong> == '<strong>main</strong>':
+<p>```</p>
+
+<p>Here is the testing code</p>
+
+<p><code>python
+    if __name__ == '__main__':
         d = maketree(['/home/thor','/home/thor/code'])
         printtree(d)
         total = tomake(d,['/home/thor','/home/thor/code/python'])
         print total
-```</p>
+</code></p>

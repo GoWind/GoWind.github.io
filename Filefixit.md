@@ -14,10 +14,11 @@ only /sha/bang and reports the no. of directories to be created as 4 and not 3.
 
 Having warned you about this bug, I built a program using python dictionaries to represent the directory tree and then return the
 number of directories to be created
-```
-    def maketree(paths):
-	    d = {}
-	    for path in paths:
+
+```python
+def maketree(paths):
+	d = {}
+	for path in paths:
 		y = path.split('/')[1:]
 		curfold = d
 		for folder in y:
@@ -27,7 +28,7 @@ number of directories to be created
 				newf = {}
 				curfold[folder] = newf
 				curfold = newf
-	    return d
+    return d
 
 
     def printtree(d):
@@ -53,8 +54,10 @@ number of directories to be created
 	    return sumd
 
 ```
+
 Here is the testing code
-```
+
+```python
 	if __name__ == '__main__':
 		d = maketree(['/home/thor','/home/thor/code'])
 		printtree(d)

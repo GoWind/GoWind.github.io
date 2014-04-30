@@ -1,0 +1,63 @@
+#Google Code Jam Practice Problem - File Fix-it
+
+Solving problems like I usually do, I stumbled across Google Code Jam's practice problems. 
+One of them File Fix-it caught my attention. The problem is
+described at [here](http://code.google.com/codejam/contest/635101/dashboard#s=p0)
+
+Basically you have to build a directory tree for the existing directories and then for each
+new directory to be created, find out how many new folders you will have to create.
+I however did not take into account that 2 new folders that need to be created might have a newly created
+common ancestor.
+
+For e.g. if /sha/bang exists and /sha/bang/boom/bong and /sha/bang/boom/buff have to be created, my code takes into account
+only /sha/bang and reports the no. of directories to be created as 4 and not 3.
+
+Having warned you about this bug, I built a program using python dictionaries to represent the directory tree and then return the
+number of directories to be created
+```
+    def maketree(paths):
+	    d = {}
+	    for path in paths:
+		y = path.split('/')[1:]
+		curfold = d
+		for folder in y:
+			if folder in curfold:
+				curfold = curfold[folder]
+			else:
+				newf = {}
+				curfold[folder] = newf
+				curfold = newf
+	    return d
+
+
+    def printtree(d):
+	    if d.keys() is None:
+		    return
+	    for key in d :
+		    print key
+		    printtree(d[key])
+
+    def tomake(dirtree,paths):
+	    sumd = 0
+	    for path in paths:
+		y = path.split('/')[1:]
+		m = len(y)
+		curfold = dirtree
+		for folder in y:
+			if folder in curfold:
+				m -= 1
+				curfold = curfold[folder]
+			else:
+				break
+		sumd += m
+	    return sumd
+
+```
+Here is the testing code
+```
+	if __name__ == '__main__':
+		d = maketree(['/home/thor','/home/thor/code'])
+		printtree(d)
+		total = tomake(d,['/home/thor','/home/thor/code/python'])
+		print total
+```

@@ -56,6 +56,6 @@ if __name__ == '__main__':
 	plt.ylim(0.0,6.0)
 	plt.show()
 ```
-This is the curve as plotted by pyplot. Increase num_points to get smoother curves
+This is the curve as plotted by pyplot. Icrease the number of num_points to get smoother curves
 ![Image Not Available](./beziercurve.png)
 

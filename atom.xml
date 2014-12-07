@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[My Octopress Blog]]></title>
-  <link href="http://yoursite.com/atom.xml" rel="self"/>
-  <link href="http://yoursite.com/"/>
-  <updated>2014-12-07T21:52:23+05:30</updated>
-  <id>http://yoursite.com/</id>
+  <link href="http://gowind.github.io/atom.xml" rel="self"/>
+  <link href="http://gowind.github.io/"/>
+  <updated>2014-12-07T22:05:38+05:30</updated>
+  <id>http://gowind.github.io/</id>
   <author>
     <name><![CDATA[Your Name]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Hello Octopress]]></title>
-    <link href="http://yoursite.com/blog/2014/12/07/hello-octopress/"/>
+    <link href="http://gowind.github.io/blog/2014/12/07/hello-octopress/"/>
     <updated>2014-12-07T21:51:56+05:30</updated>
-    <id>http://yoursite.com/blog/2014/12/07/hello-octopress</id>
+    <id>http://gowind.github.io/blog/2014/12/07/hello-octopress</id>
     <content type="html"><![CDATA[
 ]]></content>
   </entry>

@@ -11,16 +11,74 @@
   </style>
  </head>
  <body>
-  <h1 id="i-sometimes-write-something">
-   I sometimes write something
+  <h1 id="compile-time-flags-in-rust">
+   Compile time flags in Rust
   </h1>
-  <h2 id="articles">
-   Articles
-  </h2>
   <p>
-   <a href="articles/cargonotes.html">
-    Notes on Rust Cargo
-   </a>
+   Rust like
+   <code>
+    C
+   </code>
+   or
+   <code>
+    C++
+   </code>
+   allows programmers to set flags during compile time. These flags can be grouped into
+   <code>
+    features
+   </code>
+   that can be set via the
+   <code>
+    cargo
+   </code>
+   command.
+  </p>
+  <p>
+   Sometimes you might want to set only a single flag and not enable a feature.
+  </p>
+  <p>
+   To do so, you need to set the flag via
+   <code>
+    .cargo/config
+   </code>
+   in your project’s source code.
+  </p>
+  <p>
+   Here is an example of a simple  flag to conditionally compile code.
+  </p>
+  <pre><code>#[cfg(debug)]
+fn debug(s: &amp;str) {
+    println!("string is stan {}", s);
+}
+
+#[cfg(not(debug))]
+fn debug(_s: &amp;str) {
+}
+</code></pre>
+  <p>
+   To set the
+   <code>
+    debug
+   </code>
+   flag during compilation, modify the
+   <code>
+    config
+   </code>
+   file for cargo
+  </p>
+  <pre><code>[target.x86_64-unknown-linux-gnu]
+rustflags = ["--cfg", "debug"]
+</code></pre>
+  <p>
+   The reason we have to set it via the
+   <code>
+    config
+   </code>
+   file is that, Cargo doesn’t allow setting arbitrary flags via the
+   <code>
+    cargo
+   </code>
+   command.
   </p>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
   </script>

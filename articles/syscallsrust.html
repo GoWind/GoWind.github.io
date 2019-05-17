@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+  <h1 id="syscalls-with-rust">
+   Syscalls with Rust
+  </h1>
+  <p>
+   I came to know of the
+   <a href="http://fabiensanglard.net/doom_fire_psx/">
+    Doom Fire
+   </a>
+   Technique for generating the opening scene of the Doom game and I tried to implement it on the command line.
+  </p>
+  <p>
+   If you ever wonder how CLI applications show colored output, there are
+   <code>
+    ANSI escape sequences
+   </code>
+   that one can output for controlling color, text highlighting etc.
+  </p>
+  <p>
+   ANSI escape sequences starts with an
+   <code>
+    ESC
+   </code>
+   character
+   <code>
+    0x1B
+   </code>
+   followed by a byte in the
+   <code>
+    0x40-0x5F
+   </code>
+   range. You can read more about ANSI escape codes
+   <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">
+    here
+   </a>
+  </p>
+  <p>
+   Anyway, while my attempt to implement the Doom Fire algorithm using ANSI escape codes ended up looking something like this:
+  </p>
+  <p>
+   <img alt="failure at implementing Doom fire" src="doomfail.png" width=500 height=500/>
+   <br/>
+   I ended up learning a lot more about system calls.
+  </p>
+  <p>
+   The algorithm relies on treating the screen as a 2D grid of cells consisting of rows and columns, which lead me to the question: How do I know how many rows and columns does my terminal have ?
+  </p>
+  <p>
+   Turns out there is a simple command that tells you
+   <br/>
+   <code>
+    stty -a
+   </code>
+  </p>
+  <p>
+   It also displays a lot more information that might not be relevant today (example: it shows Baud rate, which is meaningless in the days of pseudoterminals but were set by real Terminal devices that used a serial connection to the computer in the basement)
+  </p>
+  <p>
+   Here is the output of
+   <code>
+    stty -a
+   </code>
+   from my terminal
+  </p>
+  <pre><code>speed 38400 baud; rows 36; columns 146; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = &lt;undef&gt;; eol2 = &lt;undef&gt;; swtch = &lt;undef&gt;; start = ^Q; stop = ^S; susp = ^Z;
+rprnt = ^R; werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
+-parenb -parodd -cmspar cs8 -hupcl -cstopb cread -clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff -iuclc -ixany -imaxbel iutf8
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke -flusho -extproc
+
+</code></pre>
+  <p>
+   Now how do we get this information in our program
+  </p>
+  <h3 id="attempt-1">
+   Attempt 1
+  </h3>
+  <p>
+   I wrote a function that creates a new process running
+   <code>
+    stty
+   </code>
+   and then reading the
+   <code>
+    STDOUT
+   </code>
+   of the process and parsing the output to obtain the
+   <code>
+    rows
+   </code>
+   and
+   <code>
+    columns
+   </code>
+   value from it.
+  </p>
+  <p>
+   Here is how the
+   <code>
+    fn
+   </code>
+   looks
+  </p>
+  <pre><code>fn get_tty_rows_columns() -&gt; Result&lt;(i32, i32), String&gt; {
+    let c = Command::new("stty")
+                    .arg("-a")
+                    .stdin(Stdio::inherit())
+                    .output()
+                    .expect("failed to get terminal attributes");
+    let stty_result = std::str::from_utf8(&amp;c.stdout).unwrap().split(";").collect::&lt;Vec&lt;_&gt;&gt;();
+    let mut rows = 0;
+    let mut cols = 0;
+    for setting in stty_result {
+        if let Some(idx) = setting.find("rows") {
+            let row_setting = setting.trim().split(" ").collect::&lt;Vec&lt;_&gt;&gt;();
+            rows = row_setting[1].parse::&lt;i32&gt;().unwrap();
+        } else if let Some(idx) = setting.find("columns") {
+            let col_setting = setting.trim().split(" ").collect::&lt;Vec&lt;_&gt;&gt;();
+            cols = col_setting[1].parse::&lt;i32&gt;().unwrap();
+        } else {
+        }
+    }
+    Ok((rows, cols))
+
+}
+</code></pre>
+  <p>
+   Kinda messy, but gets the job done.
+  </p>
+  <p>
+   But wait a minute. We are in UNIX land. Can we not figure out how stty obtains information about the terminal that it formats nicely before displaying to us ? Ofcourse ! Enter
+   <code>
+    strace
+   </code>
+   !
+   <br/>
+   <code>
+    strace
+   </code>
+   shows the system calls made by a program and their arguments. We could look at the system calls list to figure out which of the system calls provides us with information about the terminal
+  </p>
+  <p>
+   Doing a
+   <code>
+    strace stty -a
+   </code>
+   gives the following output
+  </p>
+  <pre><code>Elided output that is not relevant currently and is too large to display
+ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+ioctl(1, TIOCGWINSZ, {ws_row=36, ws_col=146, ws_xpixel=0, ws_ypixel=0}) = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 7), ...}) = 0
+ioctl(0, TIOCGWINSZ, {ws_row=36, ws_col=146, ws_xpixel=0, ws_ypixel=0}) = 0
+write(1, "speed 38400 baud; rows 36; colum"..., 50speed 38400 baud; rows 36; columns 146; line = 0;
+) = 50
+write(1, "intr = ^C; quit = ^\\; erase = ^?"..., 137intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = &lt;undef&gt;; eol2 = &lt;undef&gt;; swtch = &lt;undef&gt;; start = ^Q; stop = ^S; susp = ^Z;
+) = 137
+write(1, "rprnt = ^R; werase = ^W; lnext ="..., 70rprnt = ^R; werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
+) = 70
+write(1, "-parenb -parodd -cmspar cs8 -hup"..., 66-parenb -parodd -cmspar cs8 -hupcl -cstopb cread -clocal -crtscts
+) = 66
+write(1, "-ignbrk -brkint -ignpar -parmrk "..., 108-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff -iuclc -ixany -imaxbel iutf8
+) = 108
+write(1, "opost -olcuc -ocrnl onlcr -onocr"..., 80opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+) = 80
+write(1, "isig icanon iexten echo echoe ec"..., 108isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke -flusho -extproc
+) = 108
+</code></pre>
+  <p>
+   Bingo ! It looks there is an
+   <code>
+    ioctl
+   </code>
+   that refers to something called
+   <code>
+    ws_row
+   </code>
+   and
+   <code>
+    ws_col
+   </code>
+   that contains the values we need.
+  </p>
+  <p>
+   Googling about
+   <code>
+    ioctl
+   </code>
+   tells me that this is a
+   <strong>
+    REALLY
+   </strong>
+   powerful system call, used (and abused) to control all sorts of Linux devices
+  </p>
+  <p>
+   In this case,
+   <code>
+    ioctl
+   </code>
+   takes a
+   <code>
+    TIOCGWINSZ
+   </code>
+   (terminal config window size?) constant and its argument is a
+   <code>
+    struct winsize
+   </code>
+   that is filled with the details of the terminal if the call is successful.
+  </p>
+  <p>
+   Now comes the next step: How do we make the system call from our
+   <code>
+    Rust
+   </code>
+   program? With
+   <code>
+    C
+   </code>
+   the answer is as simply as using
+   <code>
+    ioctl.h
+   </code>
+   , which contains all the definitions and implementations that we need.
+  </p>
+  <h3 id="nix-and-libc">
+   Nix and libc
+  </h3>
+  <p>
+   The
+   <a href="https://github.com/rust-lang/libc">
+    libc crate
+   </a>
+   provides type definitions and structs required for
+   <code>
+    C
+   </code>
+   or
+   <code>
+    C-like
+   </code>
+   code from Rust programs. This crate contains the definitions that we would need to interact with the Linux system calls
+   <br/>
+   <code>
+    libc
+   </code>
+   also has an implementation of
+   <code>
+    ioctl
+   </code>
+   but it looked a bit hard to use it, so enter the
+   <a href="https://docs.rs/crate/nix/0.13.0">
+    nix
+   </a>
+   crate.
+   <code>
+    Nix
+   </code>
+   provides a set of of safe bindings over the
+   <code>
+    libc
+   </code>
+   crate and has a bunch of macros to make it easier to deal with
+   <code>
+    unsafe
+   </code>
+   code
+  </p>
+  <p>
+   Here is how we now use system calls directly from our code:
+  </p>
+  <pre><code>use libc;
+use nix::{ioctl_read_bad, convert_ioctl_res};
+
+nix::ioctl_read_bad!(read_terminal_size, libc::TIOCGWINSZ , libc::winsize);
+let mut s: libc::winsize;
+unsafe 
+{
+    s = std::mem::uninitialized();
+    read_terminal_size(1, &amp;mut s);
+}
+println!("\n\n\n\n\n rows {} cols {} \n\n\n\n", s.ws_row, s.ws_col);
+
+</code></pre>
+  <p>
+   The
+   <code>
+    ioctl_read_bad
+   </code>
+   macro creates a
+   <code>
+    fn
+   </code>
+   with the
+   <code>
+    name
+   </code>
+   passed to it as the first argument and the rest as arguments to the
+   <code>
+    ioctl
+   </code>
+   call.
+   <br/>
+   When calling the
+   <code>
+    name
+   </code>
+   , you then simply pass in te File descriptor of the device whose info you need and the data structure that serves as the input/output information for the system call.
+  </p>
+  <p>
+   <code>
+    rows 36 cols 146
+   </code>
+   : What we needed, but much more easier to obtain !
+  </p>
+  <h2 id="conclusion">
+   Conclusion
+  </h2>
+  <p>
+   <code>
+    ANSI escape codes
+   </code>
+   are a lot fun, and you can use them to build some really interesting CLI applications. There is also a
+   <code>
+    termios
+   </code>
+   crate if you don’t want to use escape codes directly and prefer using a library instead.
+  </p>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>

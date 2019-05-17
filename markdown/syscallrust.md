@@ -8,7 +8,7 @@ ANSI escape sequences starts with an `ESC` character `0x1B` followed by a byte i
 
 Anyway, while my attempt to implement the Doom Fire algorithm using ANSI escape codes ended up looking something like this:
 
-<img src="doomfail.png" width="500" height="500" alt="failure at implementing Doom fire"></img>
+<img src="/articles/doomfail.png" alt="failure at implementing Doom fire"></img>
 I ended up learning a lot more about system calls. 
 
 The algorithm relies on treating the screen as a 2D grid of cells consisting of rows and columns, which lead me to the question: How do I know how many rows and columns does my terminal have ?
@@ -127,4 +127,8 @@ When calling the  `name` , you then simply pass in te File descriptor of the dev
 ## Conclusion
 
 `ANSI escape codes` are a lot fun, and you can use them to build some really interesting CLI applications. There is also a `termios` crate if you don't want to use escape codes directly and prefer using a library instead.
+
+
+#### Source
+[here](https://gist.github.com/GoWind/da57f0191d832b0c74f2eed8283fa800)
 

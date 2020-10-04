@@ -6,6 +6,7 @@
 [System Calls with Rust](articles/syscallsrust.html)
 [Crates and Roots in Rust](articles/crates-and-roots.html)
 [Transducers - A Walkthrough](articles/transducer.html)
+[Configuring Spaces and Tabs in Vim](artices/spacesandtabs.html)
 
 
 ## Too short for articles

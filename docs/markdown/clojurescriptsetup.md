@@ -24,7 +24,7 @@ Clojurescript uses Google's Closure compiler, which seems to do a good job of em
 
 ## Setup
 
-I use [lein](leiningen.org) to configure my clojure/script projects
+I use [lein](https://leiningen.org) to configure my clojure/script projects
 
 I use  [figwheel](https://github.com/bhauman/lein-figwheel) to configure my clojurescript application.
 

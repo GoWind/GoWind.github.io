@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Writing an application in Clojurescript - Gowind's notes</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Gowind's notes</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../../about/" class="nav-link">About</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#writing-an-application-in-clojurescript" class="nav-link">Writing an application in Clojurescript</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#motivation" class="nav-link">Motivation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#setup" class="nav-link">Setup</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="writing-an-application-in-clojurescript">Writing an application in Clojurescript</h1>
+<p>Sections:
+- Motivation
+- Setup
+- Learning
+- TODOs</p>
+<h2 id="motivation">Motivation</h2>
+<p>I think Javascript is a very unaesthetic and confusing language.</p>
+<p>I absolutely hate all the confusing, jargon/buzzword fueled tooling around the ecosystem.
+To a backend developer used to the rather sensible world of package management and build tools like Maven, Javascript's flavor of the day approach to managing products feels like an insult to all the progress made in the world of software management. </p>
+<p>I love Clojure. I would like to use this amazing language to build <strong>web applications</strong>.</p>
+<h3 id="why-web-applications">Why web applications?</h3>
+<p>The fastest way to ship your software directly to users is via the web. Web applications can run anywhere, as browsers exist on all smartphones, laptops and desktops. Unless your application is extremely resource intensive or heavy, you can mostly get away with web applications. </p>
+<p>Clojurescript uses Google's Closure compiler, which seems to do a good job of emitting compact JS.</p>
+<h2 id="setup">Setup</h2>
+<p>I use <a href="https://leiningen.org">lein</a> to configure my clojure/script projects</p>
+<p>I use  <a href="https://github.com/bhauman/lein-figwheel">figwheel</a> to configure my clojurescript application.</p>
+<p>Fighweel provides nice tools for interactive development (changing and reloading our clojurescript code in the browser) and a simple server to serve requests and files.</p>
+<p><strong>Note</strong>: There are 2 versions of figwheel. I use <code>lein figwheel</code> which is the older version of the fighweel tool for this demo.
+The newer version <a href="https://figwheel.org/">fighwheel</a> is fancier The older, but simpler version suits our needs well without getting distracted by all of the confusing tooling around clojurescript/javascript.</p>
+<ol>
+<li>
+<p>I use the lein figwheel template to setup my project
+<code>lein new figwheel your-application-name</code></p>
+</li>
+<li>
+<p>This would setup our application for some "live" coding. Before that, lets look at the <code>project.clj</code> to understand our project setup and <strong>DELETE</strong> stuff to better understand how a Clojurescript with fighweel project works.</p>
+</li>
+<li>
+<p>A minimal setup</p>
+</li>
+</ol>
+<pre><code>(defproject haha &quot;0.1.0-SNAPSHOT&quot;
+  :description &quot;FIXME: write this!&quot;
+  :url &quot;http://example.com/FIXME&quot;
+  :license {:name &quot;Eclipse Public License&quot;
+            :url &quot;http://www.eclipse.org/legal/epl-v10.html&quot;}
+
+  :min-lein-version &quot;2.9.1&quot;
+
+  :dependencies [[org.clojure/clojure &quot;1.10.0&quot;]
+                 [org.clojure/clojurescript &quot;1.10.758&quot;]
+                 [org.clojure/core.async  &quot;1.2.603&quot;]
+                 [cljs-ajax &quot;0.8.0&quot;]
+                 [reagent &quot;1.0.0-alpha2&quot;]
+                ;;server-side
+                [cheshire &quot;5.10.0&quot;]
+                [ring/ring-core &quot;1.8.1&quot;]
+                [ring/ring-devel &quot;1.8.1&quot;]]
+
+  :plugins [[lein-figwheel &quot;0.5.20&quot;]
+            [lein-cljsbuild &quot;1.1.7&quot; :exclusions [[org.clojure/clojure]]]]
+
+  :source-paths [&quot;src-cljs&quot; &quot;src-clj&quot;]
+
+  :cljsbuild {:builds
+              [{:id &quot;dev&quot;
+                :source-paths [&quot;src-cljs&quot;]
+
+                ;; The presence of a :figwheel configuration here
+                ;; will cause figwheel to inject the figwheel client
+                ;; into your build
+                :figwheel {:on-jsload &quot;haha.core/on-js-reload&quot;
+                           ;; :open-urls will pop open your application in the default browser once Figwheel has started and compiled your application.
+                          :open-urls [&quot;http://localhost:3449/index.html&quot;]}
+
+                :compiler {:main haha.core
+                           ;;:target :bundle
+                           :asset-path &quot;js&quot;
+                           :output-to &quot;resources/public/js/haha-dev.js&quot;
+                           :output-dir &quot;resources/public/js&quot;
+
+                           :source-map-timestamp true
+                           ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
+                           ;; https://github.com/binaryage/cljs-devtools
+                           :preloads [devtools.preload]}}
+               ;; This next build is a compressed minified build for
+               ;; production. You can build this with:
+               ;; lein cljsbuild once min
+               {:id &quot;min&quot;
+                :source-paths [&quot;src&quot;]
+                :compiler {:output-to &quot;resources/public/js/haha.js&quot;
+                           :main haha.core
+                           :optimizations :advanced
+                           :pretty-print false}}]}
+
+  :figwheel { :http-server-root &quot;public&quot; ;; default and assumes &quot;resources&quot;
+             ;; :server-port 3449 ;; default
+             ;; :server-ip &quot;127.0.0.1&quot;
+             :css-dirs [&quot;resources/public/css&quot;] 
+             ;; Start an nREPL server into the running figwheel process
+             ;; :nrepl-port 7888
+             :ring-handler haha-server.server/handler}
+</code></pre>
+<ol>
+<li>
+<p>Let us understand the tools in this setup
+<code>lein</code> uses plugins to extend the functionality of our build tool. <code>lein-cljsbuild</code> is a plugin to compile our clojurescript code to Javascript.
+<code>figwheel</code> is a tool and a plugin, that provides us a nice environment for live coding. It a) watches our source code for changes so that our files can be re-compiled and b) provides a connection to clojurescript environment running on our browser that can be used for executing expressions from our command line repl and is used for re-loading our code. It also provides a watcher for CSS files and can load CSS changes live (pretty cool!)</p>
+</li>
+<li>
+<p>The <code>cljsbuild</code> section consists of <code>builds</code> each with a possibly different configuration for building our Clojurescript code to Javascript.</p>
+</li>
+<li>The <code>figwheel</code> configuration provides us a server that we can use for sending responses to AJAX requests from the client and also for injecting the figwheel client into the builds for live re-loading and a REPL session. </li>
+</ol>
+<h3 id="todos">TODOs</h3>
+<p>Prod builds
+Creating lists</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

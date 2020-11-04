@@ -1,0 +1,5 @@
+site_name: Gowind's notes
+nav: 
+  - Home:  index.md
+  - About: about.md
+docs_dir: docs

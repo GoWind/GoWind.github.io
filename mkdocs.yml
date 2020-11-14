@@ -1,4 +1,5 @@
 site_name: Gowind's notes
+site_url: http://gowind.in
 nav: 
   - Home:  index.md
   - About: about.md

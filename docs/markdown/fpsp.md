@@ -18,6 +18,21 @@ Begin fn:
           return 
 ```
 
+Before calling a function, the caller makes sure that the fp and sp are pointing to the same location,
+to create a linked list of frame pointers, that way at the start of any function,
+the stack pointer points to the frame pointer of the previous function.
+
+```
+Begin fn:
+    push fp
+    push local_var1
+    push local_var2
+    mov fp, sp # fp = sp
+    jmp loc # fn call
+    pop fp
+    return 
+```
+
 Understanding the address pointed by the stack is interesting as well
 `sp` (stack pointer) points to an address X (in the memory)
 This is also called the `top of the stack`.
@@ -33,6 +48,7 @@ Pop:
 Similarly pop removes items from the top of the stack
 top of the stack is always empty
 Assuming top of stack is pointint to address X
+
 ```
 1. sp is decremented. sp is now X-1
 2. pop returns the value of M[X-1] in a register
@@ -53,3 +69,4 @@ instruction about to be executed.
 02
 03
 04
+```

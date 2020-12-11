@@ -4,3 +4,6 @@ nav:
   - Home:  index.md
   - About: about.md
 docs_dir: docs
+theme:
+  name: null
+  custom_dir: 'cinder/cinder'

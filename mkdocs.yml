@@ -1,9 +1,0 @@
-site_name: Gowind's notes
-site_url: http://gowind.in
-nav: 
-  - Home:  index.md
-  - About: about.md
-docs_dir: docs
-theme:
-  name: null
-  custom_dir: 'cinder/cinder'

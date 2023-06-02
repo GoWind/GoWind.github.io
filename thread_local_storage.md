@@ -1,10 +1,10 @@
 # Thread Local Storage on macOS
 How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how. 
 
-A thread local variable is a variable declared in the program that is accessed like a common variable, but each thread has a unique copy of the variable. when a thread in the program modifies this variable, the modification is visible only to the threa that modified it and not the other threads (consequently, the other threads might see other values based on if and when they modify the variable)
+A thread local variable is a variable declared in the program that is accessed like a common variable, but each thread has a unique copy of the variable. When a thread in the program modifies this variable, the modification is visible only to the thread that modified it and not the other threads (consequently, the other threads might see other values based on if and when they modify the variable)
 
-Lets see what happens with an example. In this example , the variable `i` is denoted as `thread local`. We create 3 threads, each of which increment `i` by 1. If all the threads add 1 to `i`, and `i` were a normal variable, then `i` must be 14.
-But since `i` is defined as `thread local`, each thread gets a copy of `i`, which is initialized as `10` and then each thread increments it by `1`, equaling `11` in each thread.
+Lets take an example. The variable `i` is `thread local` (`__thread` is a GNU extension to the C language). We create 3 threads, each of which increment `i` by 1. If all the threads add 1 to `i`, and `i` were a normal variable, then `i` must be 14.
+But since `i` is defined as `thread local`, each thread gets a copy of `i`, initialized to `10` and then each thread increments it by `1`, equaling `11` in each thread.
 We can verify this behaviour. 
 
 ```
@@ -84,7 +84,7 @@ Target 0: (tlocal) stopped.
 ```
 
 3 threads are launched and all stop at the beginning of `increment_i`
-Lets select one thread and step through it, in order for things to be less confusing. 
+Lets select one thread and step through it, to make it less confusing. 
 
 ```
 thread select 4
@@ -97,14 +97,14 @@ tlocal`increment_i:
     0x100003f70 <+12>: adrp   x0, 5
 ```
 
-Now, what we are interested in is the `adrp` instruction. As covered in the previous post [[GOT, `__stubs` and Linking]], we use the `GOT` (global offset table) to load the address of a global variable. The address is at a fixed offset from the base of the GOT. We then fetch the value of the variable from the address. 
+Now, what we are interested in is the `adrp` instruction. As covered in the previous [post](https://github.com/GoWind/GoWind.github.io/blob/master/got_stubs_and_linking.md) , we use the `GOT` (global offset table) to load the address of a global variable. The address is at a fixed offset from the base of the GOT. We then fetch the value of the variable from the address. 
 `adrp` sets `x0` to an offset into the GOT (GOT + some value), where we will find the address of our global variable. we then load the actual value of our variable from this address (using `ldr x0, [x0]`)
 
-In this case, we can't use a GOT. Why ? 
-All threads share the same memory space. If var `i` is stored at address `x`, then all threads will see the same address `x` when tehy try to load the value for `i`. in our `increment_i` function, we aren't using any thread index or other thread specific identifiers (atleast directly) to load a different address in each thread, so that each thread gets a copy of `i`. 
+#### In this case, we can't use a GOT. Why ? 
+All threads share the same memory space. If var `i` is stored at address `x`, then all threads will see the same address `x` when they try to load the value for `i`. In `increment_i`, we aren't using any thread index or other thread specific identifiers (atleast directly) to load a different address in each thread, so that each thread gets a copy of `i`. 
 How does it work then ? 
 
-The answers is how thread local storage works. Thread local data (variables) are stored in a section called `thread_vars` and `thread_bss` (`tdata` and `tbss` on Linux systems). You can see them by dumping the sectiosn present in the image (executable file ) in lldb
+The answers is how thread local storage works. Thread local data (variables) are stored in a section called `thread_vars` and `thread_bss` (`tdata` and `tbss` on Linux systems). You can see them by dumping the sections present in the image (executable file ) in lldb
 
 ```
 (lldb) image dump sections tlocal
@@ -120,7 +120,7 @@ Sections for '/Users/govind/gowind-whisper/tlocal' (arm64):
 ```
 
 Our thread local variables seem to have an address somewhere between `0x0000000100008000`-`0x000000010000801c`.
-lets load the value first and then step throug the assembly instructions, to see what happens 
+Let us see what is the address we get for `i` when we read the value of `i` in each thread
 ```
 (lldb) stepi -c 3
 ...
@@ -168,19 +168,20 @@ Target 0: (tlocal) stopped.
 (lldb)
 ```
 
-`adrp x0` gives us the value `0x0000000100008000`. Reading the value stored at this address, we see that this value is in turn, another address, but this time, is an address for the fn `tlv_get_addr`. 
+`adrp x0` gives us the value `0x0000000100008000`. 
+Reading the value stored at this address, we see that this value is not the value of `i` proper, but is in turn, another address, that points to a fn `tlv_get_addr` instead. 
 
-`tlv_get_addr`, seems to be an macOS specific fn, which is part of the dynamic linker on macOS. dyld seems to be mapping itself into the address space of the process, so that the process can , in situations like these, use fns present in `dyld` .
-We can check this using `image lookup`
+`tlv_get_addr`, seems to be an macOS specific fn, which is part of the dynamic linker (`dyld`) on macOS. dyld seems to be mapping itself into the address space of the process, so that the process can , in situations like these, can use fns present in `dyld` .
+We can check this using `image lookup`.
 
 ```
-(lldb) image lookup -r -n tlv_get_addr
+(lldb) image lookup -r -n tlv_get_addr #lookup a fn using a regex value tlv_get_addr
 1 match found in /usr/lib/system/libdyld.dylib:
         Address: libdyld.dylib[0x00000001803d5120] (libdyld.dylib.__TEXT.__text + 3088)
         Summary: libdyld.dylib`tlv_get_addr
 ```
 
-Stepping over this call to `tlv_get_addr`, we see that this fns returns a value in `x0`. this seems to be the actual address of our variable `i`  and in the next  instructions, we are adding `1` to our variable `i` (`k = i + 1` in our code)
+Stepping over this call to `tlv_get_addr`, we see that this fns returns a value in `x0`. **THIS** seems to be the actual address of our variable `i`  and in the next  instructions, we are adding `1` to our variable `i` (`k = i + 1` in our code)
 
 ```
 (lldb) thread step-over

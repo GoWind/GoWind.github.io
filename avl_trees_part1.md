@@ -1,5 +1,3 @@
-# AVL Trees - Part | 
-
 ### What problem does AVL Tree solve ? 
 
 Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order
@@ -45,7 +43,9 @@ If the `balanceFactor` is < -1 or > 1 , then the tree is **unbalanced**.
 
 
 
-When we start with an empty tree, our tree is balanced. On every insert or delete, we insert into the left or the right subtrees of a current node. We then check for each node in our path from the root, if the node is balanced. If not, then we `rebalance` the current node
+When we start with an empty tree, our tree is balanced. On every insert or delete, we insert/delete into the left or the right subtrees of a current node. 
+The insertion/deletion disturbs the existing balance of our tree, so we perform a check for each node in our path from the root, until the leaf node we inserted, if the node is balanced. 
+If any node is unbalanced, then we `rebalance` that node
 
 ```
 insert/delete(node, val):
@@ -62,6 +62,10 @@ insert/delete(node, val):
 #### How do we do rebalance ? 
 
 There are 4 conditions that will cause rebalancing. We name them as 
+Left Left
+Left right
+Right Right
+Right Left
 
 1. LL (Left  Left)
 
@@ -126,35 +130,44 @@ def leftRotate(n):
   return new_root
 ```
 
-The `leftRotate` turns out tree into something like 
+The `leftRotate` turns out tree rooted at 14, to this:
 
 ```
 ```
-      14                               15
-        15           ---->            14   16
-          16                                  17
-            17      
+      14                                 15
+        \                               /    \
+         15            ---->          14      16
+            \                                     \
+             16                                     17
+               \
+                17      
 ```
 ```
 
-The next 2 condition will need a combination of left and right rotates to rebalance.
+The next 2 conditions will need a combination of left and right rotates to rebalance.
 
 3. Left Right
 
 ```
       18
+      /
     13
+      \
       14
+        \
         16      
 ```
 
-This is a more tricky situation. A single right rotation wouldn't solve the problem. Why ? Lets do a simple LL fix
+In this situation, a single right rotation wouldn't solve the problem. Why ? Lets try to do a simple LL fixup, which performs a `rotateRight(18)`
 
 ```
-      18                                        13
-    13             -----> LL(14)               x  18
-      14                                     x  14.  x
-        16                                 x   x  16.  x
+       18                                       13
+      /                                          \
+    13             -----> LL(18)                  18
+      \                                          /
+       14                                      14
+        \                                       \
+         16                                     16
 ```
 
 `13` is the new root. `18` becomes 13's right. `left_right` from `rightRotate()` (14) become's `n.left` (18's left). `x` mark's `null` nodes
@@ -166,9 +179,11 @@ Since our case is a LR (Left of root, then right of left), we do a `leftRotate` 
 This will first turn LR -> LL, and then we can apply `rightRotate`
 
 ```
-      18                               18                                14
-    13       --> leftRotate(13).    14.    --> rightRotate(18) -->.  13.    18
-      14                           13.  16                          x   x 16.  x
+      18                              18                                14
+     /    
+    13
+      \       --> leftRotate(13)    14    --> rightRotate(18) -->.  13.    18
+       14                        13.  16                          x   x 16.  x
         16                       
 ```
 
@@ -179,19 +194,25 @@ We now have a balanced Tree.
 4. RL (Right Left)
 ```
       18
-    x     29
-       27.   x
-    22.  x
+        \
+         29
+         /
+       27
+       /
+    22
 ```
 
 Similar to LR, we cannot do just 1 rotation and fix this situation. Let us try to a simple leftRotate on 18 to see why
 
 ```
-   18                                 29
-     29      leftRotate(18)->            18
-   27                                 27
- 22                                 22
-```
+   18                                    29
+     \                                  /
+     29      --RR(18)->                18
+   /                                     \   
+  27                                      27
+ /                                       /
+22                                      22 
+```   
 
 Our `balanceFactor` for the root is now still -2. 
 
@@ -202,9 +223,7 @@ To solve this, we first do a `rotateRight(29)` and then follow it up with a `lef
       \                             \                                 /   \ 
       29  rightRotate(29) ->         27        leftRotate(18) ->.   18    29
      /                              /  \                              \
-   27                              22.  29                            22
+   27                              22   29                            22
   /
 22
 ```
-
-

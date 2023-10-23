@@ -73,3 +73,19 @@ sleeping done from sleeper
 call back being done from thread id 0x1dd706080
  with work output 6%
 ```
+
+### Appendix
+
+#### How does the event loop thread know that the worker is done, therefore the `callback` must be called ? 
+
+It is also crucial that the even loop running in the `main` thread not block in any way for a signal from the worker thread, otherwise we will be preventing other runnables from proceeding on the event thread
+
+Enter UNIX pipes. A pipe is a communication devices across processes / threads with one for writing and another end for reading. 
+
+When the event loop function is  [run() uv_run](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L202) , a pipe is created and a reference to the [read](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L222) and the [write](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L224) ends are stored in the loop's data structures. The read and write ends are UNIX file descriptors.
+
+In the [implementation](https://github.com/libuv/libuv/blob/v1.42.0/src/threadpool.c#L57) of the worker threads, when a work is available,  the `work fn` of the `work` structure is called using `w->work()`. Once the work fn is executed, the worker thread signals the event loop running thread using [uv_async_send](https://github.com/libuv/libuv/blob/v1.42.0/src/threadpool.c#L122). 
+
+`uv_async_send(loop)` then [writes](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L188)to the write end of the pipe a single integer. It doesn't matter what is written, so long as the event loop can know that some work was done. The event loop can scan through the work queue for completed tasks during each loop iteration and run the associate callbacks 
+
+The most interesting trick is, because a pipe read-end in UNIX is a file descriptor, it can be `polled` for events (such as READ) in a non-blocking way. The main event loop function [uv_run](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/core.c#L369) constantly  [polls](https://github.com/libuv/libuv/blob/v1.42.0/src/unix/kqueue.c#L112)  descriptors it is interested in (for example, files we have opened, read or written to, client socket for making HTTP requests etc). When our work is done and the client writes to the PIPE, the event loop poller can READ the work done event and then executes all the associated callbacks of `done` events in the queue

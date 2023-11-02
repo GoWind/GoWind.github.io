@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Useful tools</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p><code>readelf</code> <code>nm</code> <code>pwndbg</code>
+<code>gdb</code> <code>objdump</code></p>
+<p><code>objdump</code> uses GAS (GNU assembly) syntax ? Anywhere, here
+is how it works :</p>
+<p>operand source -&gt; destination <code>movb $0x05, %al</code>
+<code>$</code> prefixed immediates <code>%</code>prefixed registers</p>
+<h4 id="gdb-commands">gdb commands</h4>
+<p><code>file myexec</code> -&gt; loads the excutable
+<code>myexec</code> for debugging <code>start</code> -&gt; starts
+executing the file</p>
+<p><code>starti</code> -&gt; start and execute only the next instruction
+(This is cool, as <code>start</code> or <code>break main</code> and
+<code>start</code> go directly to the user-defined main , and most C
+libraries have a ton of code executed before the user-defined main is
+called)</p>
+<p><code>break fnname</code> -&gt; sets a breakpoint at a given fnname
+(if it exists) <code>break *0xAddress</code> -&gt; sets a breakpoint at
+the given address (* is important) <code>stepi</code> -&gt; step into
+the next instruction <code>x/Nx address</code> -&gt; display N bytes of
+values starting at <code>address</code> in hex format.
+<code>x/Ni address</code> -&gt; display N bytes of values starting at
+<code>address</code> interpreting them as instructions.
+<code>frame</code> -&gt; shows the frame of the current function under
+exection. <code>info proc mappings</code> -&gt; shows the address space
+and mapping of the <code>print X</code> -&gt; when you are stopped at a
+breakpoint, print the value of the variable <code>X</code>
+<code>display $registerName</code> -&gt; Display the value stored in the
+register <code>registerName</code> (e.g. eax, ebx, rax etc)
+<code>info threads</code>-&gt; show the threads launched by the process.
+<code>info regs</code> -&gt; shows the value in all the registers.</p>
+</body>
+</html>

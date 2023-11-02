@@ -1,4 +1,5 @@
-AN [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) is a contract between the program and the Operating system / Hardware. 
+# C is the universal ABI
+A [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) is a contract between the program and the Operating system / Hardware. 
 
 Lets write a library in Zig and have it "exported" in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)
 

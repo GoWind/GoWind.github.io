@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Procedure Link Tables Part 1</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<pre><code>    TODO: Start with example from ELF Relocations.</code></pre>
+<p><strong>Note</strong>: A lot seems to have changed in how PLTs and
+GOTs are resolved and loaded, especially from 32 bits to 64 bits . A lot
+of my Google searches (example <a
+href="https://www.youtube.com/watch?v=kUk5pw4w0h4&amp;t=271s">here</a>)
+ended up showing stuff like <code>dl_resolve</code> that no longer
+seemed to be used anymore ???? Anyway, we can still get a rough idea of
+how PLTs and GOTs work, nevertheless.</p>
+<p>Let me start from the previous source listing of a
+<code>main.c</code> and <code>lib.c</code> from the [[From Source Code
+to Hello World/ELF Relocations]] post.</p>
+<p>We saw that the (static) linker was able to resolve the reference to
+<code>factorial</code> in our <code>main</code> when creating the
+executable. Resolve here means it can place the code for factorial in
+our executable file and generate a <code>call</code> instruction:</p>
+<pre><code>11a7:       e8 9d ff ff ff          call   1149 &lt;factorial&gt;</code></pre>
+<p>However, <code>printf</code> is part of <code>glibc</code>, which
+will be dynamically linked during runtime by the dynamic linker. The
+Executable does not know what address <code>printf</code> will be loaded
+at, so how will it know which memory address the <code>call</code>
+should jump to ?</p>
+<p>ELFs solve this problem using <code>PLT</code>s or Procedure Link
+Tables. The idea is simple:</p>
+<ol type="1">
+<li>For each dynamically linked function (<code>printf</code> etc),
+generate a <code>stub</code> or a <code>trampoline</code> entry in the
+PLT. 2.In the user’s functions, generate a <code>call</code> or a
+<code>jmp</code> instruction to this <code>stub</code>.</li>
+<li>This stub will then <code>jmp</code> to some location
+(<code>GOT</code>), that can then figure out where printf is located and
+further <code>jmp</code> or <code>call</code> that location. 3a. At 3,
+every function call from the application code to the dynamically linked
+function will need 2 jumps. Therefore, as an optimization, at 3) once we
+know the address of <code>printf</code>, we can put this address
+directly in our <code>GOT</code>, so that our <code>stub</code> can
+<code>jmp</code> to <code>printf</code> instead of having to get it
+resolved everytime.</li>
+</ol>
+<p>In th executable, 2 things have to be done: 1. We need to signal the
+dynamic linker, that we need <code>printf</code></p>
+<p>This is done using <code>relocation</code> sections
+(<code>readelf --relocs main</code>).</p>
+<pre><code>Relocation section &#39;.rela.plt&#39; at offset 0x5e8 contains 1 entry:
+  Offset          Info           Type           Sym. Value    Sym. Name + Addend
+000000003fd0  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0</code></pre>
+<p>The <code>Offset</code> has different meanings, depending on if our
+file is Relocatable file (<code>.o</code>) or an executable.
+<code>main</code> here is an executable, so <code>Offset</code> here is
+a virtual address (this will be changed when our executable is run as a
+process anyway).</p>
+<p>Let us look at our <code>main</code> to see how it indirectly calls
+<code>printf</code>. <code>objdump -M intel -dS main</code>
+(<code>-M</code> is for setting assembly syntax flavor. Intel flavor is
+a little easier to understand than the default AT&amp;T syntax).</p>
+<pre><code>000000000000118a &lt;main&gt;:
+... some assembly dropped
+11b5:       b8 00 00 00 00          mov    eax,0x0
+11ba:       e8 91 fe ff ff          call   1050 &lt;printf@plt&gt;</code></pre>
+<p>We <code>call</code> to location <code>0x1050</code>. Lets inspect
+what is at location <code>0x1050</code>.</p>
+<pre><code>Disassembly of section .plt.sec:
+
+0000000000001050 &lt;printf@plt&gt;:
+    1050:       f3 0f 1e fa             endbr64 
+    1054:       f2 ff 25 75 2f 00 00    bnd jmp QWORD PTR [rip+0x2f75]        # 3fd0 &lt;printf@GLIBC_2.2.5&gt;
+    105b:       0f 1f 44 00 00          nop    DWORD PTR [rax+rax*1+0x0]</code></pre>
+<p>Okay, so we have a <code>PLT entry for printf</code> . Lets ignore
+the <code>endbr64</code>instruction and focus on the next instruction
+(0x1054). We still don’t know the address of the actual
+<code>printf</code>. What we see here is an <code>indirect jump</code>,
+like dereferencing a pointer. The <code>[]</code> means, look up the
+value stored at address <code>rip + 0x2f75</code> and then jmp to that
+value. When executing <code>0x1054</code>, <code>rip</code> points to
+the next instruction (<code>0x105b</code>). The jmp value is stored at
+<code>rip + 0x2f75</code> =&gt; <code>0x3fd0</code>.
+<strong>Note</strong> that <code>0x3fd0</code> is the address where we
+request our dynamic linker to place the address of <code>printf</code>
+in our <code>relocs</code> section.</p>
+<p>To really probe the next step, we have to fire up <code>gdb</code>
+and execute our exe file step by step. This will be turned into Part
+2.</p>
+<h4 id="reference">Reference:</h4>
+<p>https://www.youtube.com/watch?v=kUk5pw4w0h4</p>
+<p>Why you need PLT AND GOT
+https://stackoverflow.com/questions/45355013/why-trampoline-from-plt-to-got-instead-of-directly-jumping-to-got
+(hint: When stub from PLT jumps to GOT, it pushes information in the
+stack for the resolving function in the GOT that <code>printf</code> or
+whatever function is called via the <code>plt</code> needs to be
+resolved.)</p>
+<p>Also
+https://stackoverflow.com/questions/43048932/why-does-the-plt-exist-in-addition-to-the-got-instead-of-just-using-the-got
+(It is hard to know if you have to do a <code>jmp</code> vs if you have
+to do a <code>call</code> , so there in seems to be the biggest
+problem)</p>
+</body>
+</html>

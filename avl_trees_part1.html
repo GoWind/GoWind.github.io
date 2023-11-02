@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>avl_trees_part1</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h3 id="what-problem-does-avl-tree-solve">What problem does AVL Tree
+solve ?</h3>
+<p>Imagine you have a Binary Search Tree implementation and you are
+inserting elements in ascending order</p>
+<p>[11., 12, 13, 14, 15, 16, 17, 18]</p>
+<p>Your Binary Search Tree would look like this</p>
+<pre><code>11
+  12
+    13
+      14
+        15
+          16
+            17
+              18 </code></pre>
+<p>Your tree effectively turns into a Linear list with O(n) access,
+instead of O(h) access where h ~ log2(n)</p>
+<p>This is an <strong>unbalanced</strong> tree and the more unbalanced a
+tree is, the more avg. access is O(n) instead log2(n)</p>
+<p>(Similarly, if we are turning a descending sorted array into a Binary
+Search Tree, we will run into the mirror image of the above tree)</p>
+<p>AVL Trees are a <strong>balanced</strong> tree, where after very
+insertion and deletion, we <strong>balance</strong> the tree if it
+becomes unbalanced.</p>
+<h5
+id="by-keeping-a-tree-balanced-we-are-ensuring-that-access-remains-as-close-to-on-as-possible">By
+keeping a tree <code>balanced</code> , we are ensuring that access
+remains as close to O(n) as possible</h5>
+<h4 id="how-do-we-know-a-tree-is-unbalanced">How do we know a tree is
+unbalanced ?</h4>
+<p>We use a value <code>balanceFactor</code> to determine if a node is
+balanced or not.</p>
+<p>Before we formulated <code>balanceFactor</code>, recall that : The
+height of the tree is the distance from the node to the lowest leaf in
+its left or right subtree. The height of a leaf is <code>0</code>.
+<code>height(leaf) -&gt; o</code> The height of a <code>null</code> leaf
+is also 0. <code>height(null) -&gt; 0</code> Height of a node =
+<code>1 + max(height(node.left), height(node.right))</code></p>
+<p><code>balanceFactor = height(left_subtree) - height(right_subtree)</code>
+If the <code>balanceFactor</code> is &lt; -1 or &gt; 1 , then the tree
+is <strong>unbalanced</strong>.</p>
+<p>When we start with an empty tree, our tree is balanced. On every
+insert or delete, we insert/delete into the left or the right subtrees
+of a current node. The insertion/deletion disturbs the existing balance
+of our tree, so we perform a check for each node in our path from the
+root, until the leaf node we inserted, if the node is balanced. If any
+node is unbalanced, then we <code>rebalance</code> that node</p>
+<pre><code>insert/delete(node, val):
+  if val &lt; node.val:
+      node.left = insert/delete(node.left, val)
+  else:
+      node.right = insert/delete(node.right, val)
+  balance = calculate_balance(node)
+  if balance &lt; -1 or balance &gt; 1 :
+      # rebalance</code></pre>
+<h4 id="how-do-we-do-rebalance">How do we do rebalance ?</h4>
+<p>There are 4 conditions that will cause rebalancing. We name them as
+Left Left Left right Right Right Right Left</p>
+<ol type="1">
+<li>LL (Left Left)</li>
+</ol>
+<pre><code>      14
+    13
+  12
+10      </code></pre>
+<p>The <code>balanceFactor</code> of the root with key <code>14</code>,
+= height(left_subtree) - height(right_subtree) height(left_subtree) = 2
+height(right_subtree) = 0 <code>balanceFactor</code> &gt; 1, so we
+rebalance. Rebalancing this condition is done by a
+<code>rightRotate</code>.</p>
+<p>The <code>rightRotate</code> of a node <code>n</code> is as
+follows</p>
+<pre><code>def rightRotate(n):
+  left = n.left
+  left_right = left.right
+  new_root = left
+  new_root.right = n
+  n.left = left_right # since we moved n -&gt; left.right, left.right -&gt; n.left
+  return new_root</code></pre>
+<p>Our <code>unbalanced</code> node <code>n</code> becomes</p>
+<pre><code>     14                      13
+    13        ---&gt;         12  14
+  12                     10
+10  </code></pre>
+<p><code>balanceFactor</code> of the root is now <code>1.</code></p>
+<ol start="2" type="1">
+<li>RR (Right Right)</li>
+</ol>
+<pre><code>      14
+        15
+          16
+            17      </code></pre>
+<p>The <code>balanceFactor</code> of the root with key <code>14</code>,
+= height(left_subtree) - height(right_subtree) height(left_subtree) = 0
+height(right_subtree) = 2 <code>balanceFactor</code> &lt; -1, so we
+rebalance. Rebalancing this condition is done by a
+<code>leftRotate</code>.</p>
+<pre><code>def leftRotate(n):
+  right = n.right
+  right_left = right.left
+  new_root = right
+  new_root.left = n
+  n.right = right_left # since we changed n.right to root
+  return new_root</code></pre>
+<p>The <code>leftRotate</code> turns out tree rooted at 14, to this:</p>
+<pre><code></code></pre>
+<pre><code>  14                                 15
+    \                               /    \
+     15            ----&gt;          14      16
+        \                                     \
+         16                                     17
+           \
+            17      </code></pre>
+<pre><code></code></pre>
+<p>The next 2 conditions will need a combination of left and right
+rotates to rebalance.</p>
+<ol start="3" type="1">
+<li>Left Right</li>
+</ol>
+<pre><code>      18
+      /
+    13
+      \
+      14
+        \
+        16      </code></pre>
+<p>In this situation, a single right rotation wouldn’t solve the
+problem. Why ? Lets try to do a simple LL fixup, which performs a
+<code>rotateRight(18)</code></p>
+<pre><code>       18                                       13
+      /                                          \
+    13             -----&gt; LL(18)                  18
+      \                                          /
+       14                                      14
+        \                                       \
+         16                                     16</code></pre>
+<p><code>13</code> is the new root. <code>18</code> becomes 13’s right.
+<code>left_right</code> from <code>rightRotate()</code> (14) become’s
+<code>n.left</code> (18’s left). <code>x</code> mark’s <code>null</code>
+nodes</p>
+<p>If we calculate the <code>balanceFactor</code> of 13, it is now
+<code>-2</code> instead of becoming 1. So doing a single
+<code>rightRotate</code> in this case isn’t sufficient.</p>
+<p>Since our case is a LR (Left of root, then right of left), we do a
+<code>leftRotate</code> of <code>n.left</code>, followed by a
+<code>rightRotate</code> of n.</p>
+<p>This will first turn LR -&gt; LL, and then we can apply
+<code>rightRotate</code></p>
+<pre><code>      18                              18                                14
+     /    
+    13
+      \       --&gt; leftRotate(13)    14    --&gt; rightRotate(18) --&gt;.  13.    18
+       14                        13.  16                          x   x 16.  x
+        16                       </code></pre>
+<p>We now have a balanced Tree.</p>
+<p>(We could have stopped after the leftRotate(13), the next insert of a
+value &lt; 18 would have triggered a further rebalance. I think this is
+why the algorith now specifies an additional rightRotate of 18 so that
+we can insert a few more elements before have to rebalance)</p>
+<ol start="4" type="1">
+<li>RL (Right Left)</li>
+</ol>
+<pre><code>      18
+        \
+         29
+         /
+       27
+       /
+    22</code></pre>
+<p>Similar to LR, we cannot do just 1 rotation and fix this situation.
+Let us try to a simple leftRotate on 18 to see why</p>
+<pre><code>   18                                    29
+     \                                  /
+     29      --RR(18)-&gt;                18
+   /                                     \   
+  27                                      27
+ /                                       /
+22                                      22 </code></pre>
+<p>Our <code>balanceFactor</code> for the root is now still -2.</p>
+<p>To solve this, we first do a <code>rotateRight(29)</code> and then
+follow it up with a <code>leftRotate(18)</code></p>
+<pre><code>    18                            18                                    27
+      \                             \                                 /   \ 
+      29  rightRotate(29) -&gt;         27        leftRotate(18) -&gt;.   18    29
+     /                              /  \                              \
+   27                              22   29                            22
+  /
+22</code></pre>
+</body>
+</html>

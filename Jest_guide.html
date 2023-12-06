@@ -210,5 +210,13 @@ test(&#39;somewhere where we have to mock a fetch request&#39;, async () =&gt; {
     let resp = await fetch(&quot;/some-resource&quot;);
     expect(resp.text()).toBe(&#39;4&#39;);
 </code></pre>
+<h3 id="open-handles">Open Handles</h3>
+<p>When Jest finishes running tests, it can checks to see if there are
+any events preventing the event loop from exiting. This is useful for
+example, to find connection objects that aren’t closed or (maybe
+unresolved Promises as well?) that might keep the loop alive. You can
+detect this by using <code>jest --detectOpenHandles</code>. It has
+helped me figure out connections objects that I opened and never
+closed</p>
 </body>
 </html>

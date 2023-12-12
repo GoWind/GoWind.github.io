@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>typescript_module_resolution_and_target</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="module-moduleresolution-and-target-in-nodejs">Module,
+ModuleResolution and Target in NodeJS</h1>
+<p>I did (<strong>A LOT</strong>) of reading and testing out various
+config options in my local machine to understand how
+<code>module</code>,<code>moduleResolution</code> and
+<code>target</code> configurations in <code>tsconfig.json</code>
+work.</p>
+<p>First let us setup some terminology and explanations to understand
+the terms involved:</p>
+<p><a
+href="https://www.typescriptlang.org/docs/handbook/modules/theory.html#who-is-the-host">A
+host</a></p>
+<p>Simplest point to understand: Typescript is <strong>NOT</strong> a
+host</p>
+<p>A host is the runtime where JS executes (NodeJS, browser) or a
+bundler that transforms the output of typescript</p>
+<p><a
+href="https://www.typescriptlang.org/docs/handbook/modules/theory.html#the-module-output-format">Module
+output format</a>:</p>
+<p>In any project, the first question about modules we need to answer is
+what kinds of modules the host expects, so TypeScript can set its output
+format for each file to match.</p>
+<p>The <code>module</code> compiler option provides this information to
+the compiler. Its primary purpose is to control the module format of any
+JavaScript that gets emitted during compilation</p>
+<p><a
+href="https://www.typescriptlang.org/docs/handbook/modules/theory.html#module-resolution">Module
+Resolution</a></p>
+<p>ECMAScript specification defines how to parse and
+interpret <code>import</code> and <code>export</code> statements.</p>
+<p>But it doesn’t specify the actual algorithm of how an import
+specifier (“./path/to/module” or “node-fetch”, “semver”) is resolved
+into a module</p>
+<p>This also clarifies why TypeScript doesn’t modify import specifiers
+during emit: the relationship between an import specifier and a file on
+disk (if one even exists) is host-defined, and TypeScript is not a
+host.</p>
+<p><a
+href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#module-name">Module
+Specifier</a></p>
+<p>The module to import from (example: “node-fetch” or something
+relative like “./../shared” or “./../shared/logger.js”)</p>
+<p>I tested a project with both local and non-local import specifiers.
+The most important config option was the <code>type</code> option
+<code>package.json</code>, which changes how NodeJS interprets the
+module type (ESM vs Common JS ) of <code>.js</code> files. I have
+written a summary of how my <code>tsc</code> step works with the given
+config values for <code>module</code>, <code>moduleResolution</code> and
+<code>target</code></p>
+<p>Node Version used : <code>20.6.1</code> (on macOS)</p>
+<h4 id="no-type-module-in-package.json">No <code>type</code>:
+<code>module</code> in <code>package.json</code></h4>
+<p><code>.cjs</code> files are considered CommonJS modules.
+<code>.mjs</code> files are considered ESM modules. <code>.js</code>
+files are considered CommonJS modules.</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 14%" />
+<col style="width: 34%" />
+<col style="width: 10%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>target</th>
+<th>module</th>
+<th>moduleResolution</th>
+<th>result of <code>tsc</code></th>
+<th>output format</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>es2022</td>
+<td>None</td>
+<td>None</td>
+<td>Error: cant resolve modules</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>es2022</td>
+<td>nodenext</td>
+<td>nodenext</td>
+<td>works[1]</td>
+<td>commonjs modules</td>
+</tr>
+<tr class="odd">
+<td>es2022</td>
+<td>commonjs</td>
+<td>None</td>
+<td>works[2]</td>
+<td>common js modules</td>
+</tr>
+<tr class="even">
+<td>es2022</td>
+<td>es2022</td>
+<td>Nonde</td>
+<td>doesn’t work (can’t resolve modules in node_modules)</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>es2022</td>
+<td>es2022</td>
+<td>node16</td>
+<td>doesn’t work (moduleResultion must match module)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>[2] works only if <code>esModuleInterop</code> is also set to
+<code>True</code>, otherwise runs into problems</p>
+<p>both [1] and [2] can use <code>await</code> syntax both [1] and [2]
+have CommonJs module syntax in the emitted code:</p>
+<pre><code>var __importDefault = (this &amp;&amp; this.__importDefault) || function (mod) {
+    return (mod &amp;&amp; mod.__esModule) ? mod : { &quot;default&quot;: mod };
+};
+....
+....
+....
+exports.default = fetchInformation</code></pre>
+<h4 id="with-type-module-in-package.json">With <code>type</code>:
+<code>module</code> in package.json</h4>
+<p>all relative import specifiers (example:
+<code>import { logger } from "./../shared/lib/logger-wrapper.js";</code>)
+MUST always have the suffix (<code>.js</code> <code>.mjs</code>) present
+in the import specifier, else Node will refuse to import the module.</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 14%" />
+<col style="width: 34%" />
+<col style="width: 10%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>target</th>
+<th>module</th>
+<th>moduleResolution</th>
+<th>result of <code>tsc</code></th>
+<th>output format</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>es2022</td>
+<td>None</td>
+<td>None</td>
+<td>Error: can’t resolve modules</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>es2022</td>
+<td>nodenext</td>
+<td>nodenext</td>
+<td>doesn’t work</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>es2022</td>
+<td>commonjs</td>
+<td>None</td>
+<td>compiles but fails at runtime[2]</td>
+<td>common js modules</td>
+</tr>
+<tr class="even">
+<td>es2022</td>
+<td>es2022</td>
+<td>None</td>
+<td>doesn’t work (can’t resolve modules in node_modules)</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>es2022</td>
+<td>es2022</td>
+<td>node16</td>
+<td>doesn’t work (moduleResultion must match module)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><code>.cjs</code> files are considered common js modules.
+<code>.mjs</code> files are considered esm modules <code>.js</code>
+files are considered esm modules.</p>
+<p>[2] tsc compiles successfully but code fails at runtime when running
+use <code>node /path/file.js</code> with the following error
+message:</p>
+<pre><code>ReferenceError: exports is not defined in ES module scope
+This file is being treated as an ES module because it has a &#39;.js&#39; file extension and &#39;/path/to/package.json&#39; contains &quot;type&quot;: &quot;module&quot;. To treat it as a CommonJS script, rename it to use the &#39;.cjs&#39; file extension.</code></pre>
+<p>To use Typescript code with <code>type: module</code>, you can
+specify the import specifier for a relative module, say,
+<code>./../shared/lib/logger-wrapper.ts</code> as
+<code>./../shared/lib/logger-wrapper.js</code>. <code>tsc</code> seems
+to pick it up compile successfully</p>
+<p>Also, In Typescript, module specifiers such as the
+<code>./myfile.js</code> in <code>import {a} from "./myfile.js"</code>
+are <a
+href="https://www.typescriptlang.org/docs/handbook/modules/theory.html#module-specifiers-are-not-transformed">never</a>
+transformed ! This means that your transpiled code with the
+<code>.js</code> suffix in the import specifier should work on a NodeJS
+runtime correctly.</p>
+<p>The Reason why this is so, is simple: The resolution of module
+specifier is <code>host</code> specific (host: browser, Node runtimer,
+bundler etc). Since TS is not a host, it leaves the import statement
+untouched (IMO, so much pain could have been avoided if TS could do
+this)</p>
+</body>
+</html>

@@ -1,4 +1,9 @@
-# Transforming async await - I
+---
+title: Transforming async await - I
+date: Feb 18, 2024
+---
+
+This is the first of the three part series: [Part II](async_await_transforms_part2.html), [Part III](async_await_transforms_part3.html)
 
 
 When compiling some Typescript code in JS for a backend service at work, I had set the `target` to `es5` and I saw that the emitted code did not have any `async/await` statements.

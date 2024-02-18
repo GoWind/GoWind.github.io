@@ -1,4 +1,7 @@
-# AVL Trees Part-2 Deletion 
+---
+title: AVL Trees Part-2 Deletion
+---
+
 
 In [[AVL Trees - Part I]], we saw the need for AVL Trees and how we use the `balanceFactor` of a node to keep the tree balanced when inserting nodes. 
 

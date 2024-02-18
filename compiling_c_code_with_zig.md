@@ -1,4 +1,6 @@
-# Compiling C code with Zig
+---
+title: Compiling C code with Zig
+---
 
 
 ### This doesn't cover cross-compiling to other targets. 

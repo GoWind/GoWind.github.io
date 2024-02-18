@@ -1,4 +1,6 @@
-### What problem does AVL Tree solve ? 
+---
+title: What problem does AVL Tree solve ? 
+---
 
 Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order
 

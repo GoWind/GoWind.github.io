@@ -86,7 +86,7 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="pandoc.css" />
+  <link rel="stylesheet" href="basic.css" />
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -176,130 +176,6 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="
 <h3 id="appendix">Appendix</h3>
 <h4
 id="how-does-the-event-loop-thread-know-that-the-worker-is-done-therefore-the-callback-must-be-called">How
-does the event loop thread know that the worker is done, therefore the
-<code>callback</code> must be called ?</h4>
-<p>It is also crucial that the even loop running in the
-<code>main</code> thread not block in any way for a signal from the
-worker thread, otherwise we will be preventing other runnables from
-proceeding on the event thread</p>
-<p>Enter UNIX pipes. A pipe is a communication devices across processes
-/ threads with one for writing and another end for reading.</p>
-<p>When the event loop function is <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L202">run()
-uv_run</a> , a pipe is created and a reference to the <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L222">read</a>
-and the <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L224">write</a>
-ends are stored in the loop’s data structures. The read and write ends
-are UNIX file descriptors.</p>
-<p>In the <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/threadpool.c#L57">implementation</a>
-of the worker threads, when a work is available, the
-<code>work fn</code> of the <code>work</code> structure is called using
-<code>w-&gt;work()</code>. Once the work fn is executed, the worker
-thread signals the event loop running thread using <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/threadpool.c#L122">uv_async_send</a>.</p>
-<p><code>uv_async_send(loop)</code> then <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/async.c#L188">writes</a>to
-the write end of the pipe a single integer. It doesn’t matter what is
-written, so long as the event loop can know that some work was done. The
-event loop can scan through the work queue for completed tasks during
-each loop iteration and run the associate callbacks</p>
-<p>The most interesting trick is, because a pipe read-end in UNIX is a
-file descriptor, it can be <code>polled</code> for events (such as READ)
-in a non-blocking way. The main event loop function <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/core.c#L369">uv_run</a>
-constantly <a
-href="https://github.com/libuv/libuv/blob/v1.42.0/src/unix/kqueue.c#L112">polls</a>
-descriptors it is interested in (for example, files we have opened, read
-or written to, client socket for making HTTP requests etc). When our
-work is done and the client writes to the PIPE, the event loop poller
-can READ the work done event and then executes all the associated
-callbacks of <code>done</code> events in the queue</p>
-<h1 id="a-libuv-primer-1">A libuv Primer</h1>
-<p>This is the first part of my post on how async file calls in Node JS
-works. Before we dive into the Node JS parts, I wanted to write a small
-primer on how <code>libuv</code> handles <code>work</code> requests
-using a <code>threadpool</code>. The work consists of 2 fns : a
-<code>work fn</code> and an optional <code>callback</code> fn. With
-Node, the <code>work fn</code> will do the block file calls
-(<code>open</code>, <code>read</code>, <code>write</code>) etc and the
-<code>callback</code> triggers the chain of calls that will end with the
-user provided callback being called in the end.</p>
-<p>The primer article’s code does the following:</p>
-<ol type="1">
-<li>Launch event loop on main thread</li>
-<li>submit a <code>work</code> to the event loop (from the main thread)
-that is run in a different thread. The work fn calls
-<code>sleep()</code> to simulate a block operation</li>
-<li>The <code>done</code> fn, which is a callback , is called in the
-main thread that is running the event loop</li>
-<li><code>uv_run</code> returns after all work is completed (and the
-callbacks called). <code>main</code> then returns and the program is
-terminated</li>
-</ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> sleeper_fn<span class="op">(</span>uv_work_t<span class="op">*);</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> after_sleeping_is_done_fn<span class="op">(</span>uv_work_t<span class="op">*,</span> <span class="dt">int</span><span class="op">);</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    uv_loop_t <span class="op">*</span>loop <span class="op">=</span> uv_default_loop<span class="op">();</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    pthread_t thread <span class="op">=</span> pthread_self<span class="op">();</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;loop running in thread id </span><span class="sc">%p\n</span><span class="st">&quot;</span><span class="op">,</span> thread<span class="op">);</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    uv_work_t req<span class="op">;</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    req<span class="op">.</span>data <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">int</span><span class="op">));</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    uv_queue_work<span class="op">(</span>loop<span class="op">,</span> <span class="op">&amp;</span>req<span class="op">,</span> sleeper_fn<span class="op">,</span> after_sleeping_is_done_fn<span class="op">);</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> uv_run<span class="op">(</span>loop<span class="op">,</span> UV_RUN_DEFAULT<span class="op">);</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> sleeper_fn<span class="op">(</span>uv_work_t<span class="op">*</span> req<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>   pthread_t thread <span class="op">=</span> pthread_self<span class="op">();</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>   printf<span class="op">(</span><span class="st">&quot;work function calling sleep done from thread id </span><span class="sc">%p\n</span><span class="st">&quot;</span><span class="op">,</span> thread<span class="op">);</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  sleep<span class="op">(</span><span class="dv">2</span><span class="op">);</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">*</span> <span class="op">(</span><span class="dt">int</span><span class="op">*)</span> req<span class="op">-&gt;</span>data <span class="op">=</span> <span class="dv">6</span><span class="op">;</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;sleeping done from sleeper</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> after_sleeping_is_done_fn<span class="op">(</span>uv_work_t<span class="op">*</span> req<span class="op">,</span> <span class="dt">int</span> status<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>   pthread_t thread <span class="op">=</span> pthread_self<span class="op">();</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>   printf<span class="op">(</span><span class="st">&quot;call back being done from thread id </span><span class="sc">%p\n</span><span class="st"> with work output </span><span class="sc">%d</span><span class="st">&quot;</span><span class="op">,</span> thread<span class="op">,</span> <span class="op">*</span> <span class="op">(</span><span class="dt">int</span> <span class="op">*)</span> req<span class="op">-&gt;</span>data<span class="op">);</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Compiled with
-<code>gcc  -g -I./libuvlibs/include hellouvexample.c -L./libuvlibs/lib -o hoev -luv</code></p>
-<p><strong>Before compiling the program</strong></p>
-<p>Downloaded <a
-href="https://github.com/libuv/libuv/tree/v1.42.0">libuv</a> at tag
-<code>1.42.0</code> (wanted to use a version that doesn’t use io_uring,
-even though it is irrelevant to macOS, to make it easier for me to
-understand the internal. If you are trying to re-create this blog post
-on Linux, using 1.42.0 will ensure that you don’t use IO_URING thus
-ensure that my blog post on nodejs -&gt; libuv working will make sense
-to you)</p>
-<p>Follow the instructions for building <code>libuv</code> on
-<code>macOS</code></p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./config</span> <span class="at">--prefix</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/libuvlibs<span class="kw">`</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install</span></code></pre></div>
-<p>I am installing the dynamic lib to the local folder instead of the
-default <code>/usr/local/</code> paths.</p>
-<h3 id="output-1">OUTPUT</h3>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">loop</span> running in thread id 0x1dd706080</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">work</span> function calling sleep done from thread id 0x16fcaf000</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">sleeping</span> done from sleeper</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ex">call</span> back being done from thread id 0x1dd706080</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a> <span class="ex">with</span> work output 6%</span></code></pre></div>
-<h3 id="appendix-1">Appendix</h3>
-<h4
-id="how-does-the-event-loop-thread-know-that-the-worker-is-done-therefore-the-callback-must-be-called-1">How
 does the event loop thread know that the worker is done, therefore the
 <code>callback</code> must be called ?</h4>
 <p>It is also crucial that the even loop running in the

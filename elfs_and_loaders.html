@@ -1,0 +1,38 @@
+<p>A dynamic loader is an executable ? that is used to load a program so
+that the program’s <code>main</code> can start executing. For some
+details, check out t he section on <code>ELFs</code> and
+<code>System</code> <a
+href="https://en.wikipedia.org/wiki/Dynamic_linker#Unix-like_systems_using_ELF,_and_Darwin-based_systems">here</a>,
+and <a href="https://greek0.net/elf.html">here</a>
+(https://linux-audit.com/elf-binaries-on-linux-understanding-and-analysis/#why-learn-the-details-of-elf)
+and <a
+href="https://unix.stackexchange.com/questions/467999/how-to-run-programs-with-ld-linux-so">here</a></p>
+<p>Dynamically linked executables</p>
+<p>Basically, dynamically linked executables are interpreted. An
+interpreter has to read the contents of the elf, <code>mmap</code> the
+sections in the binary to the RAM before executing the <code>main</code>
+section of the executable. Each <code>executable</code> hardcodes the
+path to the interpreter in the binary, under the <code>INTERP</code>
+entry, under the <code>dynamic</code> section of the library.</p>
+<p>This <code>interpreter</code> is the linux <code>ld</code> libary
+(<code>/usr/lib/ld-linux-x86-64.so.2</code>, etc)</p>
+<p>Statically linked executables</p>
+<p>Staticalyl linked executables do not link to <code>libc</code>
+statically. When run, they do not have an <code>mmap</code> section
+loading <code>libc</code> in their runtime memory. To generate a
+statically linked executable , look in <a
+href="https://www.systutorials.com/how-to-statically-link-c-and-c-programs-on-linux-with-gcc/">here</a></p>
+<p><code>dlopen</code> https://linux.die.net/man/3/dlopen - open dll
+file</p>
+<h2 id="understanding-elfs">Understanding ELFs</h2>
+<p>A lot of it is documented in <a
+href="https://stffrdh%20q%20rn.github.io/hardware/embedded/openrisc/2019/11/29/relocs.html">these</a>
+posts.</p>
+<p>https://www.altoros.com/blog/golang-internals-part-5-the-runtime-bootstrap-process/
+shows how to start debugging ELF’s. <code>objdump -f elf-file</code>
+shows the <code>start address</code> of Execution in an ELF file.</p>
+<p><code>BFD</code> - binary format description (+ library) is an
+abstraction library to work on object files, irrespective of the object
+file format. <code>BFD</code> is used by readelf.</p>
+<p>https://zig.news/gw1/learning-about-elf-with-zig-22eb Is a blog post
+on learning about ELF’s with Zig.</p>

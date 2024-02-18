@@ -1,5 +1,29 @@
 /* Basic.css  */
 
+/** to add margins to the side **/
+
+body {
+    margin: 0 auto;
+    width: 52em;
+    text-align: left;
+    padding: 0 3em;
+}
+
+section>section {
+    color: #fff;
+    background-color: var(--c1);
+    padding: 15px;
+    margin: 10px 8px 10px 8px;
+    text-align: center;
+}
+
+@media (max-width: 481px) {
+    body {font-size: 18px; width:98%}
+    section,article {flex:none; width:100%; margin-left: 0;}
+}
+/** end **/
+
+
 * {box-sizing: border-box}
 
 :root{

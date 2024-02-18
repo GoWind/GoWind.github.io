@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>async_await_transforms_part1</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="transforming-async-await---i">Transforming async await - I</h1>
+<p>When compiling some Typescript code in JS for a backend service at
+work, I had set the <code>target</code> to <code>es5</code> and I saw
+that the emitted code did not have any <code>async/await</code>
+statements. <code>async/await</code> was not introduced in JS until
+ES2017, but clearly we are able to transpile code with
+<code>async/await</code> into <code>es5</code> or <code>es2015</code>
+JS.</p>
+<p>So how does <code>async/await</code> work ? Lets transpile this to
+<code>ES2015</code> JS and see for ourselves.</p>
+<p>(I could have also chosen <code>ES5</code>, but <code>ES5</code> does
+not have native support for Promises and implementing Promises on ES5
+would have become even more complicated, so I am sticking to ES2015 (or
+ES6) which has native Promises, so we only have to figure out how to
+implement async/await )</p>
+<p>This is our code with <code>async/await</code></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> resp <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> body <span class="op">=</span> <span class="cf">await</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>(<span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> k <span class="op">=</span> <span class="cf">await</span> <span class="fu">getTextOrBust</span>(<span class="dv">4</span>)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(k)<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>})()<span class="op">;</span></span></code></pre></div>
+<p><code>getTextOrBust</code> makes a https call to “google.com” and if
+the response is HTTP 200, returns the body (as text) of the response.
+Both <code>fetch</code> and <code>.text()</code> methods return a
+Promise, so to use them as norma values, we need to prefix them with an
+<code>await</code> expression.</p>
+<p><code>await</code> expressions are not allowed, unless they are
+inside functions marked <code>async</code>, so our
+<code>getTextOrBust</code> becomes an <code>async</code> function.</p>
+<p>Since top-level <code>await</code>s weren’t added until ES2022, I am
+simulating a top-level await by creating an IIFE (immediately invoked
+function expression, to run the async function in the module till
+completion)</p>
+<p>The <a
+href="https://www.typescriptlang.org/play?target=2&amp;ssl=20&amp;ssc=6&amp;pln=1&amp;pc=1#code/IYZwngdgxgBAZgV2gFwJYHsIwOYFNkCCAcggLYBGuATgBQCUMA3gFAwxX4JVYAsA3MwC+zEaEixEKDFjzIAKrgAeyAPJUAQghDJ6TVjCiZt7XCAAOMALwxgAd2Cpk8fFAAWNAESvkyMyABcAPSB2Ojo2AA2uAB0hqQedAJsqHA0HObR6ADWDCxsbIYQxuToACZgbNZ2Dk7pZtHISjqJ+mwcyFxYJeVJMIIwuBEguHr5MMiuVOi2MACiVFO0HgDCwBAQ6E5wLq44YdgJvcLCIjRi0DC6lgB8ozBRTllWNvaOOPgKymqa2jQ8LQUjOgotEIuEaDkBII6PQ+EA">Typescript
+Playground</a> gave me output code like this</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;use strict&quot;</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> __awaiter <span class="op">=</span> (<span class="kw">this</span> <span class="op">&amp;&amp;</span> <span class="kw">this</span><span class="op">.</span><span class="at">__awaiter</span>) <span class="op">||</span> <span class="kw">function</span>(thisArg<span class="op">,</span> _arguments<span class="op">,</span> P<span class="op">,</span> generator) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span> <span class="fu">adopt</span>(value) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> value <span class="kw">instanceof</span> P <span class="op">?</span> value <span class="op">:</span> <span class="kw">new</span> <span class="fu">P</span>(<span class="kw">function</span>(resolve) {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">resolve</span>(value)<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        })<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">new</span>(P <span class="op">||</span> (P <span class="op">=</span> <span class="bu">Promise</span>))(<span class="kw">function</span>(resolve<span class="op">,</span> reject) {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">function</span> <span class="fu">fulfilled</span>(value) {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span> {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">step</span>(generator<span class="op">.</span><span class="fu">next</span>(value))<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">catch</span> (e) {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                <span class="fu">reject</span>(e)<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="kw">function</span> <span class="fu">rejected</span>(value) {</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span> {</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                <span class="fu">step</span>(generator[<span class="st">&quot;throw&quot;</span>](value))<span class="op">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">catch</span> (e) {</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                <span class="fu">reject</span>(e)<span class="op">;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">function</span> <span class="fu">step</span>(result) {</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>            result<span class="op">.</span><span class="at">done</span> <span class="op">?</span> <span class="fu">resolve</span>(result<span class="op">.</span><span class="at">value</span>) <span class="op">:</span> <span class="fu">adopt</span>(result<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">then</span>(fulfilled<span class="op">,</span> rejected)<span class="op">;</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">step</span>((generator <span class="op">=</span> generator<span class="op">.</span><span class="fu">apply</span>(thisArg<span class="op">,</span> _arguments <span class="op">||</span> []))<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getANumber</span>() {</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span>() {</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span>() {</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> resp <span class="op">=</span> <span class="kw">yield</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>            <span class="kw">const</span> body <span class="op">=</span> <span class="kw">yield</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">else</span> {</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>}(() <span class="kw">=&gt;</span> <span class="fu">__awaiter</span>(<span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span>() {</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> k <span class="op">=</span> <span class="kw">yield</span> <span class="fu">getTextOrBust</span>()<span class="op">;</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(k)<span class="op">;</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>}))()<span class="op">;</span></span></code></pre></div>
+<p>I re-wrote this snippet a little bit to make it easier to
+understand</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;use strict&quot;</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> __awaiter <span class="op">=</span> (<span class="kw">this</span> <span class="op">&amp;&amp;</span> <span class="kw">this</span><span class="op">.</span><span class="at">__awaiter</span>) <span class="op">||</span> <span class="kw">function</span> (thisArg<span class="op">,</span> _arguments<span class="op">,</span> P<span class="op">,</span> generator) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span> <span class="fu">adopt</span>(value) { </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> value <span class="kw">instanceof</span> P <span class="op">?</span> value <span class="op">:</span> <span class="kw">new</span> <span class="fu">P</span>(<span class="kw">function</span> (resolve) { <span class="fu">resolve</span>(value)<span class="op">;</span> })<span class="op">;</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">new</span> (P <span class="op">||</span> (P <span class="op">=</span> <span class="bu">Promise</span>))(<span class="kw">function</span> (resolve<span class="op">,</span> reject) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> genInstance <span class="op">=</span> generator<span class="op">.</span><span class="fu">apply</span>(thisArg<span class="op">,</span> _arguments <span class="op">||</span> [])<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> fulfilled <span class="op">=</span> (value) <span class="kw">=&gt;</span> { <span class="cf">try</span> { </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>(value))<span class="op">;</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                    } <span class="cf">catch</span> (e) { <span class="fu">reject</span>(e)<span class="op">;</span> }</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        } </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> rejected <span class="op">=</span> (value) <span class="kw">=&gt;</span> { <span class="cf">try</span> { <span class="fu">step</span>(genInstance[<span class="st">&quot;throw&quot;</span>](value))<span class="op">;</span> } <span class="cf">catch</span> (e) { <span class="fu">reject</span>(e)<span class="op">;</span> } }</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">function</span> <span class="fu">step</span>(result) { </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>(result<span class="op">.</span><span class="at">done</span>) { </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>              <span class="fu">resolve</span>(result<span class="op">.</span><span class="at">value</span>) </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">else</span> {</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>              <span class="fu">adopt</span>(result<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">then</span>(fulfilled<span class="op">,</span> rejected)<span class="op">;</span> </span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> resp <span class="op">=</span> <span class="kw">yield</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            <span class="kw">const</span> body <span class="op">=</span> <span class="kw">yield</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> {</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>(() <span class="kw">=&gt;</span> <span class="fu">__awaiter</span>(<span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> k <span class="op">=</span> <span class="kw">yield</span> <span class="fu">getTextOrBust</span>(<span class="dv">4</span>)<span class="op">;</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(k)<span class="op">;</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>}))()<span class="op">;</span></span></code></pre></div>
+<h4 id="async-function-x-becomes-__awaiterthisarg-function">async
+function x becomes __awaiter(thisArg, …, function*())</h4>
+<p>The first thing is to notice how our</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> resp <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> body <span class="op">=</span> <span class="cf">await</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>became</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> resp <span class="op">=</span> <span class="kw">yield</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="kw">const</span> body <span class="op">=</span> <span class="kw">yield</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> {</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>we removed the <code>async</code> keyword and wrapped the body of our
+function in an
+<code>return __awaiter(this, void 0, void 0, function* ()</code> and
+replaced <code>await</code> with <code>yield</code></p>
+<p>What is <code>yield</code> ? and what is this <code>function*</code>,
+<code>void 0</code>, ?</p>
+<p>In JS, <code>void expr</code> evaluates <code>expr</code> and returns
+<code>undefined</code> as the value of the expression, so
+<code>let x = void 10</code>, evaluates <code>10</code> and returns
+<code>undefined</code> as the value of <code>x</code></p>
+<p>What is <code>function*</code> and <code>yield</code> ? For that we
+must detour into a relatively obscure feature of Javascript :
+<strong>Generators</strong></p>
+<p>Lets take a look about Generators in <a
+href="https://gowind.github.io/async_await_transforms_part2.html">Part
+II</a></p>
+</body>
+</html>

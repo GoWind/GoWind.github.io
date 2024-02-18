@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>async_await_transforms_part3</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p>Transforming async await - III: Stepping the Generator</p>
+<p>Let us go back to the original example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> resp <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> body <span class="op">=</span> <span class="cf">await</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>This was re-written as</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTextOrBust</span>() {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> resp <span class="op">=</span> <span class="kw">yield</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="kw">const</span> body <span class="op">=</span> <span class="kw">yield</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Notice how when we <code>await</code> a Promise in our original code,
+we now <code>yield</code> the same Promise in our transpiled code ? And
+that <code>async function</code>s return a
+<code>Promise&lt;ReturnType&gt;</code> and similarly, our Transformed
+function returns a Promise ?</p>
+<ol type="1">
+<li>The body of our original function is transformed from a normal fn’s
+body to that of a Generator Function.</li>
+<li>We wrap the Generator Fn inside an <code>__awaiter</code> that knows
+how to resume our body after an operation it is waiting for, is
+complete.</li>
+</ol>
+<p>The first iteration of our <code>__awaiter</code> might have looked
+something like this:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">__awaiter</span>(<span class="op">...,</span> generatorFn) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> generator <span class="op">=</span> <span class="fu">generatorFn</span>()<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> val <span class="op">=</span> generator<span class="op">.</span><span class="fu">next</span>()<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(generator<span class="op">.</span><span class="at">done</span>) {</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="bu">Promise</span>((res<span class="op">,</span> rej) <span class="kw">=&gt;</span> { <span class="fu">res</span>(val<span class="op">.</span><span class="at">value</span>)})</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">else</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>(<span class="op">!</span> val<span class="op">.</span><span class="at">value</span> <span class="kw">instanceof</span> <span class="bu">Promise</span>) {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                <span class="bu">Promise</span>((resolve) <span class="kw">=&gt;</span> <span class="fu">resolve</span>(val<span class="op">.</span><span class="at">value</span>))<span class="op">.</span><span class="fu">then</span>((v)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                <span class="kw">=&gt;</span> generator<span class="op">.</span><span class="fu">next</span>(v))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">else</span> {</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                val<span class="op">.</span><span class="at">value</span><span class="op">.</span><span class="fu">then</span>((v) <span class="kw">=&gt;</span> generator<span class="op">.</span><span class="fu">next</span>(v))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>So what are we doing here ? 1. Run our function (Generator instance)
+2. If the Generator instance runs till completion, return a Promise that
+resolves with the value of our generator instance. 3. Else, The
+Generator instance is waiting for a Promise to resolve. Chain the
+<code>generator.next()</code> to the Promise using <code>.then</code> so
+that we can resume our generator with the resolved value.</p>
+<p>Running the example:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a> <span class="cf">return</span> <span class="fu">__awaiter</span>(<span class="kw">this</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">void</span> <span class="dv">0</span><span class="op">,</span> <span class="kw">function</span><span class="op">*</span> () {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> resp <span class="op">=</span> <span class="kw">yield</span> <span class="fu">fetch</span>(<span class="st">&quot;https://google.com&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (resp<span class="op">.</span><span class="at">ok</span>) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            <span class="kw">const</span> body <span class="op">=</span> <span class="kw">yield</span> resp<span class="op">.</span><span class="fu">text</span>()<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> body<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span> {</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="bu">Error</span>(<span class="st">&quot;Cannot fetch goog&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span></code></pre></div>
+<ol type="1">
+<li>We run <code>function*</code> inside <code>__awaiter</code> by
+calling <code>.next()</code> first.</li>
+<li>we reach <code>const resp = yield fetch(...)</code> . We suspend the
+generator instance with the return value of <code>fetch</code>: A
+promise.</li>
+<li>We check if <code>generator.done</code> is true. It is false, as we
+haven’t finished running the body of the generator instance.</li>
+<li>We therefore chain our generator to resume once the
+<code>fetch</code> Promise resolves , with the value resolved by the
+fetch Promise.</li>
+<li>Execution resumes at <code>const resp ...</code> . By now fetch
+Promise has resolved and the generator is resume with the value of this
+Promise, so resp will contain the actual response object.</li>
+<li>We then proceed till we hit the next <code>yield</code> or return
+statement.</li>
+</ol>
+<h3 id="what-happens-when-we-await-multiple-times-in-our-async-fn">What
+happens when we await multiple times in our async fn ?</h3>
+<p>Note that in the <code>__awaiter</code> implementation above , we
+resume <code>Promise.then((v) =&gt; { generator.next(v)}))</code> only
+once, but our Generator Function can have any number of yield
+expressions in the body. How do we ensure that we handle an arbitrarily
+large body with multiple <code>yield</code> statements ? (Notice that
+both fetch and response.text() return Promises, so we need to suspend
+and resume our generators twice)</p>
+<p>We do that by being a bit clever</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> __awaiter <span class="op">=</span> (<span class="kw">this</span> <span class="op">&amp;&amp;</span> <span class="kw">this</span><span class="op">.</span><span class="at">__awaiter</span>) <span class="op">||</span> <span class="kw">function</span> (thisArg<span class="op">,</span> _arguments<span class="op">,</span> P<span class="op">,</span> generator) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if value is not a Promise, then return a Promise that resolves with value</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else return value as it is</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span> <span class="fu">adopt</span>(value) { </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> value <span class="kw">instanceof</span> P <span class="op">?</span> value <span class="op">:</span> <span class="kw">new</span> <span class="fu">P</span>(<span class="kw">function</span> (resolve) { <span class="fu">resolve</span>(value)<span class="op">;</span> })<span class="op">;</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// turns the return value of any fn passed into a Promise</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">new</span> (P <span class="op">||</span> (P <span class="op">=</span> <span class="bu">Promise</span>))(<span class="kw">function</span> (resolve<span class="op">,</span> reject) {</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">// create a Generator Instance out of our given fn body </span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> genInstance <span class="op">=</span> generator<span class="op">.</span><span class="fu">apply</span>(thisArg<span class="op">,</span> _arguments <span class="op">||</span> [])<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> fulfilled <span class="op">=</span> (value) <span class="kw">=&gt;</span> { <span class="cf">try</span> { </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>(value))<span class="op">;</span> </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                    } <span class="cf">catch</span> (e) { <span class="fu">reject</span>(e)<span class="op">;</span> }</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        } </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> rejected <span class="op">=</span> (value) <span class="kw">=&gt;</span> { <span class="cf">try</span> { <span class="fu">step</span>(genInstance[<span class="st">&quot;throw&quot;</span>](value))<span class="op">;</span> } <span class="cf">catch</span> (e) { <span class="fu">reject</span>(e)<span class="op">;</span> } }</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="kw">function</span> <span class="fu">step</span>(result) { </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>(result<span class="op">.</span><span class="at">done</span>) { </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>              <span class="fu">resolve</span>(result<span class="op">.</span><span class="at">value</span>) </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">else</span> {</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>              <span class="fu">adopt</span>(result<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">then</span>(fulfilled<span class="op">,</span> rejected)<span class="op">;</span> </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<p>Lets start with top level statements that will be executed : 1.
+<code>return new ((P || (P = Promise))(function (resolve, reject)..</code>
+runs first 2. It first creates a <code>const genInstance</code>
+Generator Instance 3. Then <code>step(genInstance.next())</code> is
+executed 4. <code>step(result)</code> checks if our generator instance
+is <code>done</code>. If there are no <code>await</code> statements in
+the original code (which are replaced with <code>yield</code> in the
+transpiled code), it runs to completion , thus setting <code>done</code>
+to true. <code>step</code> then resolves the Promise from 1. with the
+value of our generator instance 5. if <code>result.done</code> is false,
+it means we probably hit a <code>yield/await</code> statement that needs
+a Promise to resolve. since <code>yield fetch(..)</code> will return a
+Promise, <code>result.value</code> is a Promise.
+<code>adopt(result.value).then(fulfilled, rejected);</code> chains our
+generator to resume after the Promise is resolved.</p>
+<p>The lines we have to pay attention to most is
+<code>const fulfilled = (value) {...}</code> and in the
+<code>else</code> clause in the function <code>step</code></p>
+<p>When a promise returned by <code>yield fetch</code> or
+<code>yield resp.text()</code> is <code>adopt</code>ed , we need to
+<code>step</code> the generator, not just do
+<code>generator.next()</code>. The function <code>step</code> is rightly
+named so, as it steps an execution of the generator and if the generator
+isn’t done, sets itself up recursively to be called again and again till
+the generator is completed.</p>
+<p>This recursive stepping is captured in the function
+<code>fulfilled</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fulfilled <span class="op">=</span> (value) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>(value))<span class="op">;</span> <span class="co">// recursive step</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (e) {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">reject</span>(e)<span class="op">;</span>  <span class="co">// reject our top level Promise if we encounter errors during</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                    <span class="co">// execution</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">step</span>(result) { </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(result<span class="op">.</span><span class="at">done</span>) { </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">resolve</span>(result<span class="op">.</span><span class="at">value</span>) </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="co">// fulfiled will call step again, thus stepping until at some point</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">// result.done is true, thus breaking the recursion</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">adopt</span>(result<span class="op">.</span><span class="at">value</span>)<span class="op">.</span><span class="fu">then</span>(fulfilled<span class="op">,</span> rejected)<span class="op">;</span> </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>If we remove all the noise in our <code>__awaiter</code>, keeping the
+above recursion in mind, we can see essentially the gist of how an
+<code>async function</code> with <code>await</code> statements can be
+transformed into a generator that we step through until it is done,
+<code>yield</code> at every Promise (await) and resuming once the
+Promise is resolved :</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode js"><code class="sourceCode javascript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> __awaiter <span class="op">=</span> <span class="kw">function</span> (thisArg<span class="op">,</span> _arguments<span class="op">,</span> P<span class="op">,</span> generator) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// turns the return value of any fn passed into a Promise</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">new</span> (P <span class="op">||</span> (P <span class="op">=</span> <span class="bu">Promise</span>))(<span class="kw">function</span> (resolve<span class="op">,</span> reject) {</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// create a Generator Instance out of our given fn body </span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> genInstance <span class="op">=</span> generator<span class="op">.</span><span class="fu">apply</span>(thisArg<span class="op">,</span> _arguments <span class="op">||</span> [])<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">// function step(result){ if(result.done) { resolve(result.value)} else {...}}</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">step</span>(genInstance<span class="op">.</span><span class="fu">next</span>())<span class="op">;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="conclusion">Conclusion</h3>
+<p>async/await in Javascript can be implemented using Generators. For a
+long time I wondered how it was done, but turns out the transpiled code
+is surprisingly understandable. The only tricky part is to grok how the
+recursive stepping is setup, using <code>step</code> and
+<code>fulfilled</code> (which in return calls step). The best way to
+grok this is by running the <a
+href="https://github.com/GoWind/algorithms/blob/master/fetch_transformer.js">snippet</a>
+under a Debugger and setting a breakpoint in the <code>fulfilled</code>
+and <code>step</code> fns. The best way to understand a piece of code is
+to simulate it step by step and inspect the results, just like the await
+transformer does !</p>
+</body>
+</html>

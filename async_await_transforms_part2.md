@@ -1,4 +1,4 @@
-Transforming async await - II Generators
+# Transforming async await - II Generators
 
 [Generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are objects created by a Generator Function (using the syntax `function*`) 
 I thought JS added them into the language spec as a case of Python envy cause Python had generators whereas JS didn't. Turns out that isn't quite the case and Generators have a very valid usecase in JS
@@ -102,4 +102,4 @@ Can we put these two together to simulate async/await ?
 
 Turns out, we can ! 
 
-[Part III](https://gowind.github.io/async_await_transforms_part1.html) will explain the snippet in Part I based on our current understanding of Generators and Promises.
+[Part III](https://gowind.github.io/async_await_transforms_part3.html) will explain the snippet in Part I based on our current understanding of Generators and Promises.

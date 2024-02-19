@@ -1,3 +1,7 @@
+---
+title: Procedure Link Tables Part I
+---
+
 This is a continuation of [[From Source Code to Hello World/Procedure Link Tables Part 1]]
 
 Let us fire up good old `gdb`. I use `pwndbg`  extension to `gdb` , as it looks cool and also has some nice additional features (haven't used it to the full extent, maybe will write a post on that)

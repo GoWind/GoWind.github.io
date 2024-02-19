@@ -1,4 +1,6 @@
-# GOT, `__stubs` and Linking 
+---
+title: GOT, `__stubs` and Linking
+---
 
 #### This is a version of the Procedure Link Tables article I wrote for x86_64, but for macOS and aarch64. 
 

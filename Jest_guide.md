@@ -1,4 +1,6 @@
-## Jest Guide
+---
+title: Jest Guide
+---
 
 some notes I took when trying to understand the `jest` library for unit testing in js/ts
 

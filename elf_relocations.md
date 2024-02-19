@@ -1,3 +1,7 @@
+---
+title: ELF relocations
+---
+
 Let us try to understand what are relocations and how they happen. 
 
 When we compile our code , there will be certain "things" that we do not know where they exist. For example , in the following snippet, we do not know where `printf` is coming from, but we just assume that `printf` is defined somewhere and is available when we execute our code.

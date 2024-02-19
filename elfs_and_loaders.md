@@ -1,3 +1,7 @@
+---
+title: ELF and Loaders
+---
+
 A dynamic loader is an executable ? that is used to load a program so that the program's `main` can start executing. 
 For some details, check out t he section on `ELFs` and `System` [here](https://en.wikipedia.org/wiki/Dynamic_linker#Unix-like_systems_using_ELF,_and_Darwin-based_systems), and [here](https://greek0.net/elf.html) (https://linux-audit.com/elf-binaries-on-linux-understanding-and-analysis/#why-learn-the-details-of-elf)
 and [here](https://unix.stackexchange.com/questions/467999/how-to-run-programs-with-ld-linux-so)

@@ -1,5 +1,6 @@
-
-### A Software Engineer is a professional.
+---
+title: A Software Engineer is a professional
+---
 
 Who is a professional ? In my words, a professional is a high skilled person, who can be relied upon to fulfil expectations in the area at which he is skilled.
 

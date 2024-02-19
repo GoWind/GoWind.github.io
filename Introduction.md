@@ -1,3 +1,7 @@
+---
+title: Introduction to ELF
+---
+
 The best introduction is the actual ELF description document : http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf
 However, it is kinda hard to read from from scratch and definitely boring.
 Not to worry ! I will doing most of the hardwork and spitting out useful information step by step as we go along. 

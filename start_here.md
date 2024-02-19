@@ -1,4 +1,7 @@
-## What no one told me 
+---
+title: What no one told me 
+---
+
 Systems programming is less about understanding a Systems programming language (C, Rust, Zig) etc, and more about understanding the platfomr (x86, ARM, Linux) etc.
 
 After trying multiple times and failing to get a good understanding of systems, I re-thought my approach to learning systems programming and started at understanding the platform. 

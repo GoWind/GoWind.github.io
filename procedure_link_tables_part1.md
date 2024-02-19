@@ -1,3 +1,7 @@
+---
+title: Procedure Link Tables Part I
+---
+
 		TODO: Start with example from ELF Relocations.
 **Note**: A lot seems to have changed in how PLTs and GOTs are resolved and loaded, especially from 32 bits to 64 bits . A lot of my Google searches (example [here](https://www.youtube.com/watch?v=kUk5pw4w0h4&t=271s)) ended up showing stuff like `dl_resolve` that no longer seemed to be used anymore ???? 
 Anyway, we can still get a rough idea of how PLTs and GOTs work, nevertheless. 

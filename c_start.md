@@ -1,3 +1,7 @@
+---
+title: C start
+---
+
 A lot of info is provided [here](https://embeddedartistry.com/blog/2019/04/08/a-general-overview-of-what-happens-before-main/)
 
 `_start` is called by most c,c++ programs before `main`.

@@ -1,4 +1,7 @@
-# Thread Local Storage on macOS
+---
+title: Thread Local Storage on macOS
+---
+
 How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how. 
 
 A thread local variable is a variable declared in the program that is accessed like a common variable, but each thread has a unique copy of the variable. When a thread in the program modifies this variable, the modification is visible only to the thread that modified it and not the other threads (consequently, the other threads might see other values based on if and when they modify the variable)

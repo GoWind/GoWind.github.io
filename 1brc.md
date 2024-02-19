@@ -2,7 +2,6 @@
 title: From 500 secs to 3.5 - The 1brc Challenge
 ---
 
-
 All measurements run on an M2Pro Macbook 16" with 32GB RAM. 
 
 For those of you that aren't aware of the [1brc]() challenge, the goal is to parse 1 billion rows in a plain text file, each row mapping a city to the temperature observed on a particular day and computing the min,max,average and total temperatures of each city.

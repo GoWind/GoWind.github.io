@@ -1,5 +1,6 @@
-# From 500 secs to 3.5 - The 1brc Challenge
-
+---
+title: From 500 secs to 3.5 - The 1brc Challenge
+---
 
 All measurements run on an M2Pro Macbook 16" with 32GB RAM. 
 

@@ -1,4 +1,6 @@
-# Advice on the internet 
+---
+title: Advice on the internet
+---
 
 
 TL;DR: In today's information rich world, Learning which advice to ignore is a skill. 

@@ -1,4 +1,7 @@
-# Module, ModuleResolution and Target in NodeJS
+---
+title: Module, ModuleResolution and Target in NodeJS
+---
+
 
 I did (**A LOT**) of reading and testing out various config options in my local machine to understand how `module`,`moduleResolution` and `target` configurations in `tsconfig.json` work. 
 

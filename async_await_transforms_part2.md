@@ -1,4 +1,10 @@
-# Transforming async await - II Generators
+---
+title: Transforming async await - II, Generators
+date: Feb 18, 2024
+---
+
+This is a continuation of a three part series: [Part I](async_await_transforms_part1.html), [Part III](async_await_transforms_part3.html)
+
 
 [Generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are objects created by a Generator Function (using the syntax `function*`) 
 I thought JS added them into the language spec as a case of Python envy cause Python had generators whereas JS didn't. Turns out that isn't quite the case and Generators have a very valid usecase in JS

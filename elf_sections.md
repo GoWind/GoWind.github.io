@@ -1,3 +1,7 @@
+---
+title: ELF Sections
+---
+
 The `file` view of an ELF is sections - parts that take part in different usecases.
 Sections are defined by Section Headers.
 Examples of sections are:

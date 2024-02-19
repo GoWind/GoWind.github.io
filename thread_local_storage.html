@@ -1,35 +1,22 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>thread_local_storage</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-  <link rel="stylesheet" href="basic.css" />
+    <meta charset="utf-8">
+  <title>Thread Local Storage on macOS</title>
   <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
+  <link rel="stylesheet" href="basic.css">
 </head>
 <body>
-<h1 id="thread-local-storage-on-macos">Thread Local Storage on
-macOS</h1>
+
+<nav>
+  <a href="/">gowind.github.io</a>
+</nav>
+<header>
+<h1 class="title">Thread Local Storage on macOS</h1>
+</header>
+
 <p>How are thread local variables implemented on macOS ? Through some
 debugging, Googling and reading the source, lets figure out how.</p>
 <p>A thread local variable is a variable declared in the program that is
@@ -288,5 +275,7 @@ available to userspace programs on macOS. Linux provides a similar call
 <code>tls_get_addr</code>. You can find more documentation on how TLS
 works in <a
 href="https://stffrdhrn.github.io/hardware/embedded/openrisc/2020/01/19/tls.html">here</a></p>
+
+
 </body>
 </html>

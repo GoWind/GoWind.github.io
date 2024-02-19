@@ -1,5 +1,5 @@
-%.html: %.md
-	pandoc --css basic.css -f markdown -o $@ $<
+%.html: %.md before Makefile
+	pandoc -s --css basic.css -f markdown -B before -o $@ $<
 
 .PHONY: all
 all: $(patsubst %.md,%.html,$(wildcard *.md))

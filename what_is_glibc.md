@@ -1,4 +1,6 @@
-WTF is `glibc` ? 
+---
+title: WTF is `glibc`?
+---
 
 C is a language + a standard that lists out certain features that has to be provided.
 There are 2 standareds - 

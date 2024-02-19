@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>x86_calling_convention</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
-  <link rel="stylesheet" href="basic.css" />
+    <meta charset="utf-8">
+  <title>x86 calling convention</title>
   <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
+  <link rel="stylesheet" href="basic.css">
 </head>
 <body>
-<h1 id="introduction">Introduction</h1>
+
+<nav>
+  <a href="/">gowind.github.io</a>
+</nav>
+<header>
+<h1 class="title">x86 calling convention</h1>
+</header>
+
+<h2 id="introduction">Introduction</h2>
 <p><strong>Note</strong> : While the title of the Folder is
 <code>Linux Stuff</code>, I am filing this article, which is about x86
 architecture in general, under Linux stuff for now</p>
@@ -109,5 +98,7 @@ not affect <code>EFLAGS</code> as opposed to <code>ADD</code></p>
 <code>lea RDX, [RCX + 4 * RBX  + RAX]</code>, ignore the
 <code>[]</code>. It is basically
 <code>RDX = RCX + 4 * RBX  + RAX</code></p>
+
+
 </body>
 </html>

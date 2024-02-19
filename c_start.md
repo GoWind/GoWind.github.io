@@ -1,3 +1,7 @@
+---
+title: C start
+---
+
 A lot of info is provided [here](https://embeddedartistry.com/blog/2019/04/08/a-general-overview-of-what-happens-before-main/)
 
 `_start` is called by most c,c++ programs before `main`.
@@ -34,7 +38,7 @@ All of the below, but not just limited to this :
 
 **Note**: In Linux (Ubuntu 19.10, gcc 9.2.1), initialization starts with `_init` that is part of the final executable (questioin, does it come from `crt0.o`. Also linux doesn't seem to have any `crt0.o` file at all ). I followed the tutorial [here](https://0xax.gitbooks.io/linux-insides/content/Misc/linux-misc-3.html)
 
-Linux + glibc defines _start in `crt1.o` under /usr/lib/x86_64
+Linux + glibc defines \_start in `crt1.o` under /usr/lib/x86_64
 
 After following tutorial ^ , you will realize that crt1.o , crti.o, crtn.o define a lot of program startup stuff. WHy does it do so ? Can we directly execute our program from main ? 
 Follow this tutorial 

@@ -1,5 +1,5 @@
 ---
-title:  Node JS internals: How async file system calls work
+title:  Node JS internals - How async file system calls work
 ---
 
 ### Note: The internal details of NodeJs (parts that are not exposed as an API) will always be subject to change. 

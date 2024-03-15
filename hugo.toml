@@ -1,0 +1,56 @@
+baseURL = "https://gowind.github.io"
+languageCode = "en"
+DefaultContentLanguage = "en"
+title = "Gowind's site"
+theme = "hugo-bearcub"
+summaryLength = 15
+enableEmoji = true
+publishDir = "public"
+
+[params]
+title = "Gowind's site"
+author = "Govind"
+description = "Wannabe electron bender"
+keywords = "Govind zig low-level"
+favicon = "favicons"
+customCss = []
+mainSections = ["post"]
+twitterHandle = ["DeepknowledgeU"]
+
+
+[[params.socialIcons]]
+icon = "fa-github"
+title = "GitHub"
+url = "https://github.com/gowind"
+
+[[params.socialIcons]]
+icon = "fa-twitter"
+title = "twitter"
+url = "https://twitter.com/DeepknowledgeU"
+
+[[params.socialIcons]]
+icon = "fa-envelope"
+title = "e-mail"
+url = "mailto:petrovgovind@gmail.com"
+
+## Menu items
+
+[menu]
+
+  [[menu.main]]
+  name = "Home"
+  identifier = "home"
+  weight = 100
+  url = "/"
+
+  [[menu.main]]
+  name = "Posts"
+  weight = 200
+  identifier = "posts"
+  url = "/post/"
+
+  [[menu.main]]
+  name = "About"
+  weight = 400
+  identifier = "about"
+  url = "/about/"

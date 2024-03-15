@@ -20,19 +20,9 @@ twitterHandle = ["DeepknowledgeU"]
     email = "mailto:petrovgovind@gmail.com"
     name = "Govind"
 
+generateSocialCard = true
 
-[[params.socialIcons]]
-icon = "fa-github"
-title = "GitHub"
-url = "https://github.com/gowind"
-
-[[params.socialIcons]]
-icon = "fa-twitter"
-title = "twitter"
-url = "https://twitter.com/DeepknowledgeU"
-
-[[params.socialIcons]]
-icon = "fa-envelope"
-title = "e-mail"
-url = "mailto:petrovgovind@gmail.com"
+  [params.social]
+    twitter = "DeepknowledgeU"
+    github = "Gowind"
 

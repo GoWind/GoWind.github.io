@@ -9,13 +9,16 @@ publishDir = "public"
 
 [params]
 title = "Gowind's site"
-author = "Govind"
 description = "Wannabe electron bender"
 keywords = "Govind zig low-level"
 favicon = "favicons"
 customCss = []
-mainSections = ["post"]
+mainSections = ["posts"]
 twitterHandle = ["DeepknowledgeU"]
+
+  [params.author]
+    email = "mailto:petrovgovind@gmail.com"
+    name = "Govind"
 
 
 [[params.socialIcons]]
@@ -33,24 +36,3 @@ icon = "fa-envelope"
 title = "e-mail"
 url = "mailto:petrovgovind@gmail.com"
 
-## Menu items
-
-[menu]
-
-  [[menu.main]]
-  name = "Home"
-  identifier = "home"
-  weight = 100
-  url = "/"
-
-  [[menu.main]]
-  name = "Posts"
-  weight = 200
-  identifier = "posts"
-  url = "/post/"
-
-  [[menu.main]]
-  name = "About"
-  weight = 400
-  identifier = "about"
-  url = "/about/"

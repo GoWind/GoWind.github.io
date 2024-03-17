@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>C is the universal ABI | Gowind&#39;s site</title>
+<meta name="title" content="C is the universal ABI" />
+<meta name="description" content="A ABI is a contract between the program and the Operating system / Hardware.
+Lets write a library in Zig and have it &ldquo;exported&rdquo; in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)" />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="C is the universal ABI" />
+<meta property="og:description" content="A ABI is a contract between the program and the Operating system / Hardware.
+Lets write a library in Zig and have it &ldquo;exported&rdquo; in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/c_is_the_universal_abi/" /><meta property="article:section" content="post" />
+
+<meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="C is the universal ABI"/>
+<meta name="twitter:description" content="A ABI is a contract between the program and the Operating system / Hardware.
+Lets write a library in Zig and have it &ldquo;exported&rdquo; in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)"/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="C is the universal ABI">
+<meta itemprop="description" content="A ABI is a contract between the program and the Operating system / Hardware.
+Lets write a library in Zig and have it &ldquo;exported&rdquo; in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)">
+
+<meta itemprop="wordCount" content="241">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+    
+    <link href="/syntax.min.css" rel="stylesheet">
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>C is the universal ABI</h1>
+<p class="byline">
+  <time datetime='0001-01-01' pubdate>
+    0001-01-01
+  </time>
+  
+</p>
+
+<content>
+  <p>A <a href="https://en.wikipedia.org/wiki/Application_binary_interface">ABI</a> is a contract between the program and the Operating system / Hardware.</p>
+<p>Lets write a library in Zig and have it &ldquo;exported&rdquo; in such a way that it conforms to C ABI (the API required by C to call functions, pass arguments and return values)</p>
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-clib.zig" data-lang="clib.zig"><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">fn</span> multiplyAndAdd(x<span style="color:#f92672">:</span> <span style="color:#66d9ef">c_int</span>, y<span style="color:#f92672">:</span> <span style="color:#66d9ef">c_int</span>) <span style="color:#66d9ef">c_int</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> k<span style="color:#f92672">:</span> <span style="color:#66d9ef">c_int</span> <span style="color:#f92672">=</span> x <span style="color:#f92672">*</span> x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> k <span style="color:#f92672">+</span> y;
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div><p><code>export</code> -&gt; This <code>fn</code> is to be compiled in a C ABI compatible way.
+<code>c_int</code> -&gt; an integer whose bit layout can be understood by C.</p>
+<p>Now lets build it into a shared dynamic library
+<code>zig build-lib -fPIC -dynamic clib.zig</code></p>
+<p>This will output a <code>libclib.dylib</code> on the <code>macOS</code> (will be <code>libclib.so</code> on Linux)</p>
+<p>Lets see if we can call this fn from C code. After all, this is why we exported the fn in the first place.</p>
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-main.c" data-lang="main.c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;clib.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span><span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> k <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#a6e22e">multiplyAndAdd</span>(k , <span style="color:#ae81ff">16</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, j);
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-clib.h" data-lang="clib.h"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">multiplyAndAdd</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">int</span>);</span></span></code></pre></div>
+
+
+
+
+<pre tabindex="0"><code>gcc -I. -L. main.c -o main -lclib</code></pre><p>Executing this, we get</p>
+
+
+
+
+
+<pre tabindex="0"><code>./main
+160</code></pre><p>Cool. If this is C ABI, can we use it from other languages as well ? Turns out, we can. Lets call this fn from Python</p>
+
+
+
+
+
+<pre tabindex="0"><code>import ctypes
+import pathlib
+
+if __name__ == &#34;__main__&#34;:
+    # Load the shared library into ctypes
+    libname = pathlib.Path().absolute() / &#34;libclib.dylib&#34;
+    c_lib = ctypes.CDLL(libname)
+    c_lib.multiplyAndAdd.restype = ctypes.c_int
+    answer = c_lib.multiplyAndAdd(ctypes.c_int(12), ctypes.c_int(16))
+    print(answer)</code></pre>
+
+
+
+
+<pre tabindex="0"><code>&gt; python pythonclib.py
+160</code></pre><p>C is THE universal ABI</p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"C%20is%20the%20universal%20ABI"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

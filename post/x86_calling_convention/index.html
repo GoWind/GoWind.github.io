@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>x86 calling convention | Gowind&#39;s site</title>
+<meta name="title" content="x86 calling convention" />
+<meta name="description" content="Introduction Note : While the title of the Folder is Linux Stuff, I am filing this article, which is about x86 architecture in general, under Linux stuff for now" />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="x86 calling convention" />
+<meta property="og:description" content="Introduction Note : While the title of the Folder is Linux Stuff, I am filing this article, which is about x86 architecture in general, under Linux stuff for now" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/x86_calling_convention/" /><meta property="article:section" content="post" />
+
+<meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="x86 calling convention"/>
+<meta name="twitter:description" content="Introduction Note : While the title of the Folder is Linux Stuff, I am filing this article, which is about x86 architecture in general, under Linux stuff for now"/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="x86 calling convention">
+<meta itemprop="description" content="Introduction Note : While the title of the Folder is Linux Stuff, I am filing this article, which is about x86 architecture in general, under Linux stuff for now">
+
+<meta itemprop="wordCount" content="521">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>x86 calling convention</h1>
+<p class="byline">
+  <time datetime='0001-01-01' pubdate>
+    0001-01-01
+  </time>
+  
+</p>
+
+<content>
+  <h2 id="introduction">Introduction</h2>
+<p><strong>Note</strong> : While the title of the Folder is <code>Linux Stuff</code>, I am filing this article, which is about x86 architecture in general, under Linux stuff for now</p>
+<p>Also a good <a href="https://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86/">source</a> for understanding how a stack is pushed/popped and the calling convention.</p>
+<h2 id="what-is-a-calling-convention-">What is a calling convention ?</h2>
+<p>A calling convention is a standardized  way of passing function arguments and return values to and from function in x86 assembly.</p>
+<h3 id="why-do-we-need-a-calling-convention-">Why do we need a calling convention ?</h3>
+<p>Interoperability. The operating system for eexample, provides a libc: [[[What is <code>glibc</code>]], that is in the form of a dynamic  library.</p>
+<p>A lot of other libraries and opeerating systems provide functionality via shared or static libraries <code>.dll</code>, <code>.so</code>, <code>.a</code> files etc.</p>
+<p>The advantage of this format is you can use any language that can compile code to assembly to use these libraries.</p>
+<p>But to do so, you need to know  how to communicate with these dynamic libraries.</p>
+<p>The calling convention is the protocol for applications to call into such shared library functions.</p>
+<p>Calling convention depends on the version of the x86 architecture (32-bit vs 64 bit), and there are slightly different versions of Calling Conventions (cdecl, fastcall, slowcall, etc). More information <a href="https://en.wikipedia.org/wiki/X86_calling_conventions#Register_preservation">here</a></p>
+<p>Here let us take a look <code>cdecl</code> and how it deals with the stack. This version deals with the 32-bit architecture</p>
+<h3 id="x86-basics">X86 basics</h3>
+<p>Memory is linear and addressed in terms of bytes.
+The Stack of a function grows towards lower addresses.
+The Heap of a the program grows higher.</p>
+<h3 id="pushing-and-popping-esp">Pushing and popping <code>esp</code></h3>
+<p>esp -&gt; Points to the top of he stack.
+esp is always aligned to a 4-byte address / 16? byte address (esp modulo 32 == 0)</p>
+<h4 id="push">Push</h4>
+<p>push <code>x</code> -&gt; Pushes <code>x</code> to the top of the stack
+<strong>Basically</strong>:
+esp = esp - 4
+Memory[esp] = <code>x</code></p>
+<h4 id="pop">Pop</h4>
+<p>pop <code>target</code>
+pops the top of the stack into <code>target</code> (register, or memory address)
+Memory[target] (or target registry) = Memory[esp]
+esp = esp - 4</p>
+<h3 id="base-pointer">Base Pointer</h3>
+<p><code>ebp</code>, or the Base pointer, points to the Base of a function&rsquo;s stack.</p>
+<h3 id="alignment">Alignment</h3>
+<p>Stack must be multiple of 8 aligned before doing a <code>call</code> instruction, otherwise it will segfault.</p>
+<h3 id="order-of-operands">Order of operands</h3>
+<p>Operands to functions are passed via registers. Registers are chosen as follows</p>
+<ul>
+<li>For integers and pointers, <code>rdi</code>, <code>rsi</code>, <code>rdx</code>, <code>rcx</code>, <code>r8</code>, <code>r9</code>.
+-  For floating-point (float, double), <code>xmm0</code>, <code>xmm1</code>, <code>xmm2</code>, <code>xmm3</code>, <code>xmm4</code>, <code>xmm5</code>, <code>xmm6</code>, <code>xmm7</code>.</li>
+</ul>
+<h3 id="return-values">Return values</h3>
+<p>return values are stored in <code>rax</code> or <code>rdx:rax</code> in case of integers and <code>xmm0</code> or <code>xmm1:xmm0</code> in case of floats.</p>
+<h4 id="interesting-notes">Interesting notes</h4>
+<p><strong>LEA</strong>
+LEA stands for load effective address. <code>lea</code> doesnt manipulate (read or write to memory address), but is only used for calculating addresses, instead of <code>add</code> or <code>mul</code>.
+Why ?</p>
+<ol>
+<li>Add cannot operate on 3 registers at once. Using <code>lea</code> once can use the [Base Reg + N* Step REG + offset Reg] notation to calculate mem address and store it an anddress</li>
+<li>Does not affect <code>EFLAGS</code> as opposed to <code>ADD</code></li>
+</ol>
+<p>When you see something like <code>lea RDX, [RCX + 4 * RBX  + RAX]</code>, ignore the <code>[]</code>. It is basically <code>RDX = RCX + 4 * RBX  + RAX</code></p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"x86%20calling%20convention"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>Useful tools | Gowind&#39;s site</title>
+<meta name="title" content="Useful tools" />
+<meta name="description" content="readelf nm pwndbg gdb objdump objdump uses GAS (GNU assembly) syntax ? Anywhere, here is how it works :" />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="Useful tools" />
+<meta property="og:description" content="readelf nm pwndbg gdb objdump objdump uses GAS (GNU assembly) syntax ? Anywhere, here is how it works :" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/useful_tools/" /><meta property="article:section" content="post" />
+
+<meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Useful tools"/>
+<meta name="twitter:description" content="readelf nm pwndbg gdb objdump objdump uses GAS (GNU assembly) syntax ? Anywhere, here is how it works :"/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="Useful tools">
+<meta itemprop="description" content="readelf nm pwndbg gdb objdump objdump uses GAS (GNU assembly) syntax ? Anywhere, here is how it works :">
+
+<meta itemprop="wordCount" content="227">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>Useful tools</h1>
+<p class="byline">
+  <time datetime='0001-01-01' pubdate>
+    0001-01-01
+  </time>
+  
+</p>
+
+<content>
+  <ul>
+<li><code>readelf</code></li>
+<li><code>nm</code></li>
+<li><code>pwndbg</code></li>
+<li><code>gdb</code></li>
+<li><code>objdump</code></li>
+</ul>
+<p><code>objdump</code> uses GAS (GNU assembly) syntax ?
+Anywhere, here is how it works :</p>
+<p>operand source -&gt; destination
+<code>movb $0x05, %al</code>
+<code>$</code> prefixed immediates
+<code>%</code>prefixed registers</p>
+<h4 id="gdb-commands">gdb commands</h4>
+<p><code>file myexec</code> -&gt; loads the excutable <code>myexec</code> for debugging
+<code>start</code> -&gt; starts executing the file</p>
+<p><code>starti</code> -&gt; start and execute only the next instruction
+(This is cool, as <code>start</code> or <code>break main</code> and <code>start</code> go directly to the user-defined main
+, and most C libraries have a ton of code executed before the user-defined main is called)</p>
+<p><code>break fnname</code> -&gt; sets a breakpoint at a given fnname (if it exists)
+<code>break *0xAddress</code> -&gt; sets a breakpoint at the given address (* is important)
+<code>stepi</code> -&gt; step into the next instruction
+<code>x/Nx address</code> -&gt; display N bytes of values starting at <code>address</code> in hex format.
+<code>x/Ni address</code> -&gt; display N bytes of values starting at <code>address</code> interpreting them as instructions.
+<code>frame</code> -&gt; shows the frame of the current function under exection.
+<code>info proc mappings</code> -&gt; shows the address space and mapping of the
+<code>print X</code> -&gt; when you are stopped at a breakpoint, print the value of the variable <code>X</code>
+<code>display $registerName</code> -&gt; Display the value stored in the register <code>registerName</code> (e.g. eax, ebx, rax etc)
+<code>info threads</code>-&gt; show the threads launched by the process.
+<code>info regs</code> -&gt; shows the value in all the registers.</p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"Useful%20tools"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

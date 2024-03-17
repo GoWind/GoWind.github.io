@@ -5,7 +5,7 @@ title = "Gowind's site"
 theme = "hugo-bearcub"
 summaryLength = 15
 enableEmoji = true
-publishDir = "public"
+publishDir = "."
 
 [params]
 title = "Gowind's site"

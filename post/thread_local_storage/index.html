@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>Thread Local Storage on macOS | Gowind&#39;s site</title>
+<meta name="title" content="Thread Local Storage on macOS" />
+<meta name="description" content="How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how." />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="Thread Local Storage on macOS" />
+<meta property="og:description" content="How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/thread_local_storage/" /><meta property="article:section" content="post" />
+
+<meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Thread Local Storage on macOS"/>
+<meta name="twitter:description" content="How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how."/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="Thread Local Storage on macOS">
+<meta itemprop="description" content="How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how.">
+
+<meta itemprop="wordCount" content="1509">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+    
+    <link href="/syntax.min.css" rel="stylesheet">
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>Thread Local Storage on macOS</h1>
+<p class="byline">
+  <time datetime='0001-01-01' pubdate>
+    0001-01-01
+  </time>
+  
+</p>
+
+<content>
+  <p>How are thread local variables implemented on macOS ? Through some debugging, Googling and reading the source, lets figure out how.</p>
+<p>A thread local variable is a variable declared in the program that is accessed like a common variable, but each thread has a unique copy of the variable. When a thread in the program modifies this variable, the modification is visible only to the thread that modified it and not the other threads (consequently, the other threads might see other values based on if and when they modify the variable)</p>
+<p>Lets take an example. The variable <code>i</code> is <code>thread local</code> (<code>__thread</code> is a GNU extension to the C language). We create 3 threads, each of which increment <code>i</code> by 1. If all the threads add 1 to <code>i</code>, and <code>i</code> were a normal variable, then <code>i</code> must be 14.
+But since <code>i</code> is defined as <code>thread local</code>, each thread gets a copy of <code>i</code>, initialized to <code>10</code> and then each thread increments it by <code>1</code>, equaling <code>11</code> in each thread.
+We can verify this behaviour.</p>
+
+
+
+
+
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+#include&lt;pthread.h&gt;
+
+__thread int i = 10;
+void increment_i(void);
+int main() {
+
+  pthread_t t1, t2, t3;
+  int ret1, ret2, ret3;
+  ret1 = pthread_create(&amp;t1, NULL, (void *)increment_i, NULL);
+  ret2 = pthread_create(&amp;t2, NULL, (void *)increment_i, NULL);
+  ret3 = pthread_create(&amp;t3, NULL, (void *)increment_i, NULL);
+
+  pthread_join(t1, NULL);
+  pthread_join(t2, NULL);
+  pthread_join(t3, NULL);
+
+  return 0;
+}
+
+
+void increment_i() {
+  int k = i + 1;
+  i = k;
+  printf(&#34;value of k is %d\n&#34;, k);
+}</code></pre><p>compiling it
+<code>gcc tlocal.c -o tlocal -lpthread</code></p>
+<p>and executing it</p>
+
+
+
+
+
+<pre tabindex="0"><code>./tlocal
+value of k is 11
+value of k is 11
+value of k is 11</code></pre><h3 id="so-how-are-thread-local-variables-implemented-">So how are thread local variables implemented ?</h3>
+<p>To understand this, we need to setup a breakpoint in <code>increment_i</code> to observe the behavior. Lets load up our executable in lldb and step through the code.</p>
+<p><code>&gt;lldb --file tlocal</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) b increment_i
+Breakpoint 1: where = tlocal`increment_i, address = 0x0000000100003f64
+(lldb) run
+Process 95169 launched: &#39;/Users/govind/gowind-whisper/tlocal&#39; (arm64)
+Process 95169 stopped
+* thread #2, stop reason = breakpoint 1.1
+    frame #0: 0x0000000100003f64 tlocal`increment_i
+tlocal`increment_i:
+-&gt;  0x100003f64 &lt;+0&gt;:  sub    sp, sp, #0x20
+    0x100003f68 &lt;+4&gt;:  stp    x29, x30, [sp, #0x10]
+    0x100003f6c &lt;+8&gt;:  add    x29, sp, #0x10
+    0x100003f70 &lt;+12&gt;: adrp   x0, 5
+  thread #3, stop reason = breakpoint 1.1
+    frame #0: 0x0000000100003f64 tlocal`increment_i
+tlocal`increment_i:
+-&gt;  0x100003f64 &lt;+0&gt;:  sub    sp, sp, #0x20
+    0x100003f68 &lt;+4&gt;:  stp    x29, x30, [sp, #0x10]
+    0x100003f6c &lt;+8&gt;:  add    x29, sp, #0x10
+    0x100003f70 &lt;+12&gt;: adrp   x0, 5
+  thread #4, stop reason = breakpoint 1.1
+    frame #0: 0x0000000100003f64 tlocal`increment_i
+tlocal`increment_i:
+-&gt;  0x100003f64 &lt;+0&gt;:  sub    sp, sp, #0x20
+    0x100003f68 &lt;+4&gt;:  stp    x29, x30, [sp, #0x10]
+    0x100003f6c &lt;+8&gt;:  add    x29, sp, #0x10
+    0x100003f70 &lt;+12&gt;: adrp   x0, 5
+Target 0: (tlocal) stopped.
+(lldb)</code></pre><p>3 threads are launched and all stop at the beginning of <code>increment_i</code>
+Lets select one thread and step through it, to make it less confusing.</p>
+
+
+
+
+
+<pre tabindex="0"><code>thread select 4
+* thread #4, stop reason = breakpoint 1.1
+    frame #0: 0x0000000100003f64 tlocal`increment_i
+tlocal`increment_i:
+-&gt;  0x100003f64 &lt;+0&gt;:  sub    sp, sp, #0x20
+    0x100003f68 &lt;+4&gt;:  stp    x29, x30, [sp, #0x10]
+    0x100003f6c &lt;+8&gt;:  add    x29, sp, #0x10
+    0x100003f70 &lt;+12&gt;: adrp   x0, 5</code></pre><p>Now, what we are interested in is the <code>adrp</code> instruction. As covered in the previous <a href="https://github.com/GoWind/GoWind.github.io/blob/master/got_stubs_and_linking.md">post</a> , we use the <code>GOT</code> (global offset table) to load the address of a global variable. The address is at a fixed offset from the base of the GOT. We then fetch the value of the variable from the address.
+<code>adrp</code> sets <code>x0</code> to an offset into the GOT (GOT + some value), where we will find the address of our global variable. we then load the actual value of our variable from this address (using <code>ldr x0, [x0]</code>)</p>
+<h4 id="in-this-case-we-cant-use-a-got-why-">In this case, we can&rsquo;t use a GOT. Why ?</h4>
+<p>All threads share the same memory space. If var <code>i</code> is stored at address <code>x</code>, then all threads will see the same address <code>x</code> when they try to load the value for <code>i</code>. In <code>increment_i</code>, we aren&rsquo;t using any thread index or other thread specific identifiers (atleast directly) to load a different address in each thread, so that each thread gets a copy of <code>i</code>.
+How does it work then ?</p>
+<p>The answers is how thread local storage works. Thread local data (variables) are stored in a section called <code>thread_vars</code> and <code>thread_bss</code> (<code>tdata</code> and <code>tbss</code> on Linux systems). You can see them by dumping the sections present in the image (executable file ) in lldb</p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) image dump sections tlocal
+Sections for &#39;/Users/govind/gowind-whisper/tlocal&#39; (arm64):
+  SectID     Type             Load Address                             Perm File Off.  File Size  Flags      Section Name
+  ---------- ---------------- ---------------------------------------  ---- ---------- ---------- ---------- ----------------------------
+  0x00000100 container        [0x0000000000000000-0x0000000100000000)* ---  0x00000000 0x00000000 0x00000000 tlocal.__PAGEZERO
+  0x00000200 container        [0x0000000100000000-0x0000000100004000)  r-x  0x00000000 0x00004000 0x00000000 tlocal.__TEXT
+....
+  0x00000005 regular          [0x0000000100008000-0x0000000100008018)  rw-  0x00008000 0x00000018 0x00000013 tlocal.__DATA.__thread_vars
+  0x00000006 regular          [0x0000000100008018-0x000000010000801c)  rw-  0x00000000 0x00000000 0x00000012 tlocal.__DATA.__thread_bss
+  0x00000500 container        [0x000000010000c000-0x0000000100010000)  r--  0x0000c000 0x00000403 0x00000000 tlocal.__LINKEDIT</code></pre><p>Our thread local variables seem to have an address somewhere between <code>0x0000000100008000</code>-<code>0x000000010000801c</code>.
+Let us see what is the address we get for <code>i</code> when we read the value of <code>i</code> in each thread</p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) stepi -c 3
+...
+* thread #4, stop reason = instruction step into
+    frame #0: 0x0000000100003f70 tlocal`increment_i + 12
+tlocal`increment_i:
+-&gt;  0x100003f70 &lt;+12&gt;: adrp   x0, 5
+    0x100003f74 &lt;+16&gt;: add    x0, x0, #0x0              ; i
+    0x100003f78 &lt;+20&gt;: ldr    x8, [x0]
+    0x100003f7c &lt;+24&gt;: blr    x8
+...
+* thread #4, stop reason = instruction step into
+    frame #0: 0x0000000100003f74 tlocal`increment_i + 16
+tlocal`increment_i:
+-&gt;  0x100003f74 &lt;+16&gt;: add    x0, x0, #0x0
+    0x100003f78 &lt;+20&gt;: ldr    x8, [x0]
+    0x100003f7c &lt;+24&gt;: blr    x8
+    0x100003f80 &lt;+28&gt;: ldr    w8, [x0]
+Target 0: (tlocal) stopped.
+(lldb) register read x0
+      x0 = 0x0000000100008000  tlocal`i
+(lldb) stepi
+...
+* thread #4, stop reason = instruction step into
+    frame #0: 0x0000000100003f78 tlocal`increment_i + 20
+tlocal`increment_i:
+-&gt;  0x100003f78 &lt;+20&gt;: ldr    x8, [x0]
+    0x100003f7c &lt;+24&gt;: blr    x8
+    0x100003f80 &lt;+28&gt;: ldr    w8, [x0]
+    0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+Target 0: (tlocal) stopped.
+(lldb) register read x0
+      x0 = 0x0000000100008000  tlocal`i
+(lldb) stepi
+* thread #4, stop reason = instruction step into
+    frame #0: 0x0000000100003f7c tlocal`increment_i + 24
+tlocal`increment_i:
+-&gt;  0x100003f7c &lt;+24&gt;: blr    x8
+    0x100003f80 &lt;+28&gt;: ldr    w8, [x0]
+    0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+Target 0: (tlocal) stopped.
+(lldb) register read x8
+      x8 = 0x000000018c84d120  libdyld.dylib`tlv_get_addr
+(lldb)</code></pre><p><code>adrp x0</code> gives us the value <code>0x0000000100008000</code>.
+Reading the value stored at this address, we see that this value is not the value of <code>i</code> proper, but is in turn, another address, that points to a fn <code>tlv_get_addr</code> instead.</p>
+<p><code>tlv_get_addr</code>, seems to be an macOS specific fn, which is part of the dynamic linker (<code>dyld</code>) on macOS. dyld seems to be mapping itself into the address space of the process, so that the process can , in situations like these, can use fns present in <code>dyld</code> .
+We can check this using <code>image lookup</code>.</p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) image lookup -r -n tlv_get_addr #lookup a fn using a regex value tlv_get_addr
+1 match found in /usr/lib/system/libdyld.dylib:
+        Address: libdyld.dylib[0x00000001803d5120] (libdyld.dylib.__TEXT.__text + 3088)
+        Summary: libdyld.dylib`tlv_get_addr</code></pre><p>Stepping over this call to <code>tlv_get_addr</code>, we see that this fns returns a value in <code>x0</code>. <strong>THIS</strong> seems to be the actual address of our variable <code>i</code>  and in the next  instructions, we are adding <code>1</code> to our variable <code>i</code> (<code>k = i + 1</code> in our code)</p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) thread step-over
+Process 95169 stopped
+* thread #4, stop reason = instruction step over
+    frame #0: 0x0000000100003f80 tlocal`increment_i + 28
+tlocal`increment_i:
+-&gt;  0x100003f80 &lt;+28&gt;: ldr    w8, [x0]
+    0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+    0x100003f8c &lt;+40&gt;: ldur   w8, [x29, #-0x4]
+Target 0: (tlocal) stopped.
+(lldb) register read x0
+      x0 = 0x000060000000c000
+(lldb) stepi
+Process 95169 stopped
+* thread #4, stop reason = instruction step into
+    frame #0: 0x0000000100003f84 tlocal`increment_i + 32
+tlocal`increment_i:
+-&gt;  0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+    0x100003f8c &lt;+40&gt;: ldur   w8, [x29, #-0x4]
+    0x100003f90 &lt;+44&gt;: str    w8, [x0]
+Target 0: (tlocal) stopped.
+(lldb) register read w8
+      w8 = 0x0000000a</code></pre><p>Switching to a different thread, we can see that after the <code>blr x8</code> call, our <code>x0</code> has a different address, which according to thread #3, is the address of the variable <code>i</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>(lldb) thread select 3
+* thread #3
+    frame #0: 0x0000000100003f80 tlocal`increment_i + 28
+tlocal`increment_i:
+-&gt;  0x100003f80 &lt;+28&gt;: ldr    w8, [x0]
+    0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+    0x100003f8c &lt;+40&gt;: ldur   w8, [x29, #-0x4]
+(lldb) register read x0
+      x0 = 0x0000600000010000
+(lldb) stepi
+Process 95169 stopped
+* thread #3, stop reason = instruction step into
+    frame #0: 0x0000000100003f84 tlocal`increment_i + 32
+tlocal`increment_i:
+-&gt;  0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+    0x100003f8c &lt;+40&gt;: ldur   w8, [x29, #-0x4]
+    0x100003f90 &lt;+44&gt;: str    w8, [x0]
+  thread #4, stop reason = trace
+    frame #0: 0x0000000100003f84 tlocal`increment_i + 32
+tlocal`increment_i:
+-&gt;  0x100003f84 &lt;+32&gt;: add    w8, w8, #0x1
+    0x100003f88 &lt;+36&gt;: stur   w8, [x29, #-0x4]
+    0x100003f8c &lt;+40&gt;: ldur   w8, [x29, #-0x4]
+    0x100003f90 &lt;+44&gt;: str    w8, [x0]
+Target 0: (tlocal) stopped.
+(lldb) register read w8
+      w8 = 0x0000000a</code></pre><p>Thread local variables are thus, through one simple indirection, available to userspace programs on macOS.
+Linux provides a similar call <code>tls_get_addr</code>. You can find more documentation on how TLS works in  <a href="https://stffrdhrn.github.io/hardware/embedded/openrisc/2020/01/19/tls.html">here</a></p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"Thread%20Local%20Storage%20on%20macOS"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

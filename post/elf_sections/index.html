@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>ELF Sections | Gowind&#39;s site</title>
+<meta name="title" content="ELF Sections" />
+<meta name="description" content="The file view of an ELF is sections - parts that take part in different usecases." />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="ELF Sections" />
+<meta property="og:description" content="The file view of an ELF is sections - parts that take part in different usecases." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/elf_sections/" /><meta property="article:section" content="post" />
+
+<meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="ELF Sections"/>
+<meta name="twitter:description" content="The file view of an ELF is sections - parts that take part in different usecases."/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="ELF Sections">
+<meta itemprop="description" content="The file view of an ELF is sections - parts that take part in different usecases.">
+
+<meta itemprop="wordCount" content="267">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>ELF Sections</h1>
+<p class="byline">
+  <time datetime='0001-01-01' pubdate>
+    0001-01-01
+  </time>
+  
+</p>
+
+<content>
+  <p>The <code>file</code> view of an ELF is sections - parts that take part in different usecases.
+Sections are defined by Section Headers.
+Examples of sections are:
+<code>.text</code> : assembly instructions
+<code>.rodata</code> : Read-only data
+<code>.bss</code>: Read only initialized data</p>
+<h2 id="section-headers">Section Headers</h2>
+<p>Sections, their types and permissions are defined by a <code>Section Header</code>.
+Section Headers are stored as an array in the ELF, starting at offset <code>e_shoff</code>  (which is defined in the ELF Header)</p>
+<p><code>readelf -S /path/to/elffile</code>  lists the sections in the Header file</p>
+<p>How do we know what the name of a section is ? Each section holds a field: <code>sh_name</code>, that is an offset into the <code>String Table</code></p>
+<h5 id="and-what-is-a-string-table-">And what is a <code>String Table</code> ?</h5>
+<p>A <code>STRTAB</code> is itself a section in an ELF. It is a linear array, where the first byte is <code>0x00</code> followed by NULL terminated strings, ending in an <code>0x00</code>.  Each string is used for either naming <code>symbols</code> (more on that later) or sections or other purposes (debugging, maybe ?).</p>
+<h4 id="convenience">Convenience</h4>
+<p>To make computation easy, we can use the following fields in the ELF header, to peek at the String Table.</p>
+<ol>
+<li><code>e_shoff</code>  : offset into  file to the section Headers array.</li>
+<li><code>e_shentsize</code> : Size of each section header.</li>
+<li><code>e_shstrndx</code>  points to the index of the STRTAB in the Section Header array.</li>
+<li>. String Table Header offset = File[<code>e_shoff</code> + <code>e_shentsize</code> * <code>e_shstrndx</code>]</li>
+<li>
+<ol start="4">
+<li>Actual String Table = (String Table Header).<code>sh_offset</code></li>
+</ol>
+</li>
+</ol>
+<h4 id="miscellaneous-sections">Miscellaneous Sections.</h4>
+<p><code>.eh_frame</code> is for Exception Handling frames (for languages that support exceptions , such as C++)
+<a href="https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/ehframechpt.html">https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA/ehframechpt.html</a>
+Can be disabled with <code>-fno-asynchronous-unwind-tables</code> (<a href="https://stackoverflow.com/questions/26300819/why-gcc-compiled-c-program-needs-eh-frame-section">https://stackoverflow.com/questions/26300819/why-gcc-compiled-c-program-needs-eh-frame-section</a>)
+DWARF debugging symbols (<code>gcc -g</code>) are stored in <code>.debug_frame</code></p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"ELF%20Sections"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

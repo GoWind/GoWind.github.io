@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://gowind.github.io/favicons" />
+<title>Book: Systems Performance, a rather incomplete review | Gowind&#39;s site</title>
+<meta name="title" content="Book: Systems Performance, a rather incomplete review" />
+<meta name="description" content="Brendan Gregg&rsquo;s System Performance is a book that I have been meaning to read for a long time, but didn&rsquo;t get around to." />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="Book: Systems Performance, a rather incomplete review" />
+<meta property="og:description" content="Brendan Gregg&rsquo;s System Performance is a book that I have been meaning to read for a long time, but didn&rsquo;t get around to." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://gowind.github.io/post/systems_performance_review/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2024-02-25T00:00:00+00:00" />
+<meta property="article:modified_time" content="2024-02-25T00:00:00+00:00" /><meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Book: Systems Performance, a rather incomplete review"/>
+<meta name="twitter:description" content="Brendan Gregg&rsquo;s System Performance is a book that I have been meaning to read for a long time, but didn&rsquo;t get around to."/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="Book: Systems Performance, a rather incomplete review">
+<meta itemprop="description" content="Brendan Gregg&rsquo;s System Performance is a book that I have been meaning to read for a long time, but didn&rsquo;t get around to."><meta itemprop="datePublished" content="2024-02-25T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2024-02-25T00:00:00+00:00" />
+<meta itemprop="wordCount" content="529">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='https://gowind.github.io/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>Book: Systems Performance, a rather incomplete review</h1>
+<p class="byline">
+  <time datetime='2024-02-25' pubdate>
+    2024-02-25
+  </time>
+  
+</p>
+
+<content>
+  <p>Brendan Gregg&rsquo;s <a href="https://www.brendangregg.com/blog/2020-07-15/systems-performance-2nd-edition.html">System Performance</a> is a book that I have been meaning to read for a long time, but didn&rsquo;t get around to.
+Thanks to my workplace&rsquo;s education policy, I get to buy and reimburse technical books, so I grabbed myself a copy</p>
+<p>Its a Hyuuuuge book (some 793 pages excluding the Introduction and the Appendix) and I don&rsquo;t think I will ever write a review if I wait until I completed the entire book.</p>
+<p>That said, even read a couple of chapters gave me enough intuition on what to pursue further and my two biggest takeaways
+have been:</p>
+<ol>
+<li>USE and RED Methodologies</li>
+<li>BPF (or eBPF) based tools</li>
+</ol>
+<h2 id="use-and-red-methodologies">USE and RED methodologies</h2>
+<p>USE stands for Utilization, Saturation and Errors.
+It is a methodology for investigating systematic bottlenecks in System Resources</p>
+<p><strong>RESOURCE</strong> - components like CPU, RAM, Network bandwidth etc.
+<strong>UTILIZATION</strong> - what % of a resource is used, over time (5-minute avg utilization of a CPU) and space (number of CPUs utilized by a program in a multi-threaded/multi-CPU system)</p>
+<p>When utilization reaches 100% and more requests to utilize a resource (such as new processes or incoming packets) come in, they are queued for processing. This is a measure of extra <strong>pressure</strong> on the system and is termed <strong>SATURATION</strong></p>
+<p><strong>ERRORS</strong> - The number of error events (seg faults, page faults) etc.</p>
+<p>USE is a methodology for measuring how well system resources are used.</p>
+<p>As a user of a system (or service ) you don&rsquo;t know (or care) about system resources, rather about how well your requests to use the system are doing. Example, if you are using AWS s3 to store data/files, then you don&rsquo;t care about how efficient s3 is in using system resources, rather you want to know how quickly your request to store and fetch data</p>
+<p>In such cases, the <strong>RED methodology</strong>*  is a better way to track systematic bottlenecks
+RED stands for Requests Rate, Errors and Duration.</p>
+<p><strong>Request Rate</strong> - The rate at which user requests arrive
+<strong>Errors</strong> - The number (or % ) of requests that result in a (non-user induced) error
+<strong>Duration</strong> - The duration it takes for requests to be served (measured by 50th, 90th, 99th percentiles etc)</p>
+<h2 id="bpf-ebpf-based-tools">BPF (eBPF) based tools</h2>
+<p>BPF is a way for users on Linux to load programs that run within the kernel, without having to modify the kernel source codeOR load kernel modules.
+While it start off with packet filter (as the name stands for Berkely Packet Filter), it soon extended to other usecases as well.
+using BPF, users can attach programs to various hooks in the kernel (for example, you can run a program to track every time a read() system call was executed, or a write()). BPF programs are written in a dialect of C.
+Using BPF directly can be cumbersome, so Brendan Gregg&rsquo;s <a href="https://github.com/iovisor/bcc">BCC</a> project provides some useful tools and utilities to make it easier to write, load and register BPF programs.
+There is also a high-level scripting like language, <a href="https://github.com/bpftrace/bpftrace">BPFtrace</a> that can be programmed like a bash/awk script to do pretty much most of what you need as a user to track application performance without having to write programs in BPF&rsquo;s C dialect</p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"Book%3a%20Systems%20Performance%2c%20a%20rather%20incomplete%20review"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

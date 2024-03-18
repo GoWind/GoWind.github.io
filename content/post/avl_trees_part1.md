@@ -1,5 +1,6 @@
 ---
-title: What problem does AVL Tree solve?
+title: AVL Trees Part-1: What problem does AVL Tree solve?
+date: 2023-09-07
 ---
 
 Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order

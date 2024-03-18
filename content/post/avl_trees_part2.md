@@ -1,5 +1,6 @@
 ---
 title: AVL Trees Part-2 Deletion
+date: 2023-09-07
 ---
 
 

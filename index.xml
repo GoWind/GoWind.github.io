@@ -1279,90 +1279,233 @@ This is useful for example, to find connection objects that aren&rsquo;t closed 
 ]]></content:encoded>
     </item>
     <item>
-      <title>A Software Engineer is a professional</title>
-      <link>https://gowind.github.io/post/what_do_i_do_as_a_software_engineer/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
-      <guid>https://gowind.github.io/post/what_do_i_do_as_a_software_engineer/</guid>
-      <description>Who is a professional ? In my words, a professional is a high skilled person, who can be relied upon to fulfil expectations in the area at which he is skilled.</description>
-      <content:encoded><![CDATA[<p>Who is a professional ? In my words, a professional is a high skilled person, who can be relied upon to fulfil expectations in the area at which he is skilled.</p>
-<p>3 words are important here</p>
+      <title>AVL Trees Part-1 What problem does AVL Tree solve?</title>
+      <link>https://gowind.github.io/post/avl_trees_part1/</link>
+      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <guid>https://gowind.github.io/post/avl_trees_part1/</guid>
+      <description>Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order</description>
+      <content:encoded><![CDATA[<p>Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order</p>
+<p>[11., 12, 13, 14, 15, 16, 17, 18]</p>
+<p>Your Binary Search Tree would look like this</p>
+
+
+
+
+
+<pre tabindex="0"><code>11
+  12
+    13
+      14
+        15
+          16
+            17
+              18 </code></pre><p>Your tree effectively turns into a Linear list with O(n) access, instead of O(h) access where h ~ log2(n)</p>
+<p>This is an <strong>unbalanced</strong> tree and the more unbalanced a tree is, the more avg. access is O(n) instead log2(n)</p>
+<p>(Similarly, if we are turning a descending sorted array into a Binary Search Tree, we will run into the mirror image of the above tree)</p>
+<p>AVL Trees are a <strong>balanced</strong> tree, where after very insertion and deletion, we <strong>balance</strong> the tree if it becomes unbalanced.</p>
+<h5 id="by-keeping-a-tree-balanced--we-are-ensuring-that-access-remains-as-close-to-on-as-possible">By keeping a tree <code>balanced</code> , we are ensuring that access remains as close to O(n) as possible</h5>
+<h4 id="how-do-we-know-a-tree-is-unbalanced-">How do we know a tree is unbalanced ?</h4>
+<p>We use a value <code>balanceFactor</code> to determine if a node is balanced or not.</p>
+<p>Before we formulated <code>balanceFactor</code>, recall that :
+The height of the tree is the distance from the node to the lowest leaf in its left or right subtree.
+The height of a leaf is <code>0</code>. <code>height(leaf) -&gt; o</code>
+The height of a <code>null</code> leaf is also 0. <code>height(null) -&gt; 0</code>
+Height of a node = <code>1 + max(height(node.left), height(node.right))</code></p>
+<p><code>balanceFactor = height(left_subtree) - height(right_subtree)</code>
+If the <code>balanceFactor</code> is &lt; -1 or &gt; 1 , then the tree is <strong>unbalanced</strong>.</p>
+<p>When we start with an empty tree, our tree is balanced. On every insert or delete, we insert/delete into the left or the right subtrees of a current node.
+The insertion/deletion disturbs the existing balance of our tree, so we perform a check for each node in our path from the root, until the leaf node we inserted, if the node is balanced.
+If any node is unbalanced, then we <code>rebalance</code> that node</p>
+
+
+
+
+
+<pre tabindex="0"><code>insert/delete(node, val):
+  if val &lt; node.val:
+	  node.left = insert/delete(node.left, val)
+  else:
+      node.right = insert/delete(node.right, val)
+  balance = calculate_balance(node)
+  if balance &lt; -1 or balance &gt; 1 :
+	  # rebalance</code></pre><h4 id="how-do-we-do-rebalance-">How do we do rebalance ?</h4>
+<p>There are 4 conditions that will cause rebalancing. We name them as
+Left Left
+Left right
+Right Right
+Right Left</p>
 <ol>
-<li>skill</li>
-<li>relied upon (reliability)</li>
-<li>expectations</li>
+<li>LL (Left  Left)</li>
 </ol>
-<h3 id="skills">Skills</h3>
-<p>As a Software Engineer, your skill is your ability to work with software.
-You are programming software to fulfil expectations.</p>
-<p>you employ your skill in software and programming, to do what needs to be done.</p>
-<h3 id="expectations">Expectations</h3>
-<p>But what needs to be done ?</p>
-<p>My team maintains a feature as a part of a large product that serves 100M+ customers all over the world. The feature provides incentives to the user to continue using our product. The feature has a certain definition and behaviour and must serve all the users on our platform.</p>
-<p>What my team (and therefore I) must do is a simple statement:
-Identify and improve this feature to improve usage of our product and retain more customers.</p>
-<ol>
-<li>Communication: To do this effectively, my team has to talk to marketing managers to understand how they market our product and how we can provide incentives to attract more customers. Since Marketing is heavily dependent on the country/demographics/language of our audience, we have to put in the effort to consider the various needs before adding or extending the features.</li>
-<li>Scale: We cannot launch features that cannot scale to our entire customer base. so before we decide to add more features, we have to see if we can reliably scale to extend our features to all of our users, otherwise it will have a net impact</li>
-<li>Planning and estimation: Developers are expensive. For anything we set out to do, we must be capable of assessing the difficulty of tasks, risks that might delay our estimates and most importantly plan the order of things to be done, so that we aren&rsquo;t wasting time doing a task that will ultimately have to be discarded</li>
-<li>Measurement and Analytics : most features are experimental in nature (ie, you do not know if it made an impact or not). To gauge the success of anything we add (or remove), we need to measure the impact. Our job doesn&rsquo;t just stop once we yeet our code changes into Production. We provide tools and data to assess the impact of our changes so that PMs and Marketing people can make informed decisions.</li>
+
+
+
+
+
+<pre tabindex="0"><code>      14
+    13
+  12
+10      </code></pre><p>The <code>balanceFactor</code> of the root with key <code>14</code>, = height(left_subtree) - height(right_subtree)
+height(left_subtree) = 2
+height(right_subtree) = 0
+<code>balanceFactor</code> &gt; 1, so we rebalance.
+Rebalancing this condition is done by a <code>rightRotate</code>.</p>
+<p>The <code>rightRotate</code> of a node <code>n</code> is as follows</p>
+
+
+
+
+
+<pre tabindex="0"><code>def rightRotate(n):
+  left = n.left
+  left_right = left.right
+  new_root = left
+  new_root.right = n
+  n.left = left_right # since we moved n -&gt; left.right, left.right -&gt; n.left
+  return new_root</code></pre><p>Our <code>unbalanced</code> node <code>n</code> becomes</p>
+
+
+
+
+
+<pre tabindex="0"><code>     14                      13
+    13        ---&gt;         12  14
+  12                     10
+10  </code></pre><p><code>balanceFactor</code> of the root is now <code>1.</code></p>
+<ol start="2">
+<li>RR (Right Right)</li>
 </ol>
-<p>Notice how programming is a <em>critical</em> but small part of my responsibilities. My work is a superset of programming related tasks. What I am doing is anything and everything to support this feature that my team is expected to maintain as a part of the larger product and the company.</p>
-<p>We get to the final part: how am I doing it ??</p>
-<h3 id="reliability">Reliability</h3>
-<p>Any automation/script is only as good as how many times you have to manually intervene.
-If you have a computer, that is super fast, but has to be restarted every 5 mins, it is worthless than a calculator because you can never depend on it.</p>
-<p>Similarly, the most talented developers are only as good as how long they can be relied upon and how frequently their managers have to &ldquo;manage&rdquo; them.</p>
-<p>The best software developers are the ones that managers can forget about knowing because they know that they can manage themselves.</p>
-<p>The worst software developers are the ones that, like babies, need a full-time caretaker to make sure they aren&rsquo;t soiling themselves or causing ruckus in the house or the nursery.</p>
-<p>Your team and manager should be able to count on you to consistently deliver, with the least amount of intervention possible.</p>
-<p>This doesn&rsquo;t mean that they never have to message you or setup a meeting or provide you information or basically not talk to you at all, nor does it mean you are expected to do everything by yourself without seeking help.</p>
-<p>Your manager and team are happy in the fact that you will seek help, when needed, inform them of the status of your work, really dive into the details and keep track of everything that needs to be done.</p>
-]]></content:encoded>
-    </item>
-    <item>
-      <title>Advice on the internet</title>
-      <link>https://gowind.github.io/post/advice_on_the_internet/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
-      <guid>https://gowind.github.io/post/advice_on_the_internet/</guid>
-      <description>TL;DR: In today&amp;rsquo;s information rich world, Learning which advice to ignore is a skill.&#xA;This post is not advice, rather observations based on experience.</description>
-      <content:encoded><![CDATA[<p>TL;DR: In today&rsquo;s information rich world, Learning which advice to ignore is a skill.</p>
-<p>This post is not advice, rather observations based on experience.</p>
-<p>I  classify advice into 2 broad buckets</p>
-<ol>
-<li>Tactical / specific advice</li>
-<li>Generic advice</li>
+
+
+
+
+
+<pre tabindex="0"><code>      14
+        15
+          16
+            17      </code></pre><p>The <code>balanceFactor</code> of the root with key <code>14</code>, = height(left_subtree) - height(right_subtree)
+height(left_subtree) = 0
+height(right_subtree) = 2
+<code>balanceFactor</code> &lt; -1, so we rebalance.
+Rebalancing this condition is done by a <code>leftRotate</code>.</p>
+
+
+
+
+
+<pre tabindex="0"><code>def leftRotate(n):
+  right = n.right
+  right_left = right.left
+  new_root = right
+  new_root.left = n
+  n.right = right_left # since we changed n.right to root
+  return new_root</code></pre><p>The <code>leftRotate</code> turns out tree rooted at 14, to this:</p>
+
+
+
+
+
+<pre tabindex="0"><code></code></pre><pre><code>  14                                 15
+    \                               /    \
+     15            ----&gt;          14      16
+        \                                     \
+         16                                     17
+           \
+            17      
+</code></pre>
+
+
+
+
+
+<pre tabindex="0"><code></code></pre><p>The next 2 conditions will need a combination of left and right rotates to rebalance.</p>
+<ol start="3">
+<li>Left Right</li>
 </ol>
-<h2 id="tactical-advice">Tactical advice</h2>
-<p>Tactical / specific advice , is highly specific. This bucket, IMO, consists of advice whose effectiveness can be gauged very accurately and often very quickly.Stuck on a programming problem ? Ask a senior and he can tell you how to solve it and you do. Need to file taxes ? Your tax accountant helps you file taxes and reduces your tax burden. In this case there is a strict material number attached to the gain you make for his services.</p>
-<h2 id="generic-advice">Generic advice</h2>
-<p>Generic / strategic / philosphical advice. These are advice that are &ldquo;generic&rdquo;, as in both applicable to large swaths of the population and very broad, applicable to your life or career at any many points in time. Gauging the effectiveness of such advice is hard, sometimes nigh on impossible because the converse of these statements are often not true. For example, take the statement: &ldquo;hardwork makes you rich&rdquo;. The converse &ldquo;being rich means you did hardwork&rdquo; is not always true (or heck, is not even necessary). Also words like &ldquo;hardwork&rdquo; and &ldquo;rich&rdquo; are very subjective and for it to be a truly scientific statement, you need to control for all other variables (circumstances, education, luck, the exact year in which you did hardwork).</p>
-<p>Generic advice is found everywhere on the internet today. The cost of disbursing information has gone down ~0, so you will find everyone handing out advice on how to live life, what are the right principles to have in life, what you must do and what you must eat.</p>
-<h2 id="tactical-advice-is-relatively-easy-to-evaluate">Tactical advice is relatively easy to evaluate</h2>
-<ol>
-<li>Is the advice from a professional  (i.e. someone getting paid for their speciality) and is the advice for something related to that profession ?</li>
-<li>and is there a direct metric that tells me how much I stand to gain if following that advice ?</li>
+
+
+
+
+
+<pre tabindex="0"><code>      18
+      /
+    13
+      \
+      14
+        \
+        16      </code></pre><p>In this situation, a single right rotation wouldn&rsquo;t solve the problem. Why ? Lets try to do a simple LL fixup, which performs a <code>rotateRight(18)</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>       18                                       13
+      /                                          \
+    13             -----&gt; LL(18)                  18
+      \                                          /
+       14                                      14
+        \                                       \
+         16                                     16</code></pre><p><code>13</code> is the new root. <code>18</code> becomes 13&rsquo;s right. <code>left_right</code> from <code>rightRotate()</code> (14) become&rsquo;s <code>n.left</code> (18&rsquo;s left). <code>x</code> mark&rsquo;s <code>null</code> nodes</p>
+<p>If we calculate the <code>balanceFactor</code> of 13, it is now <code>-2</code> instead of becoming 1. So doing a single <code>rightRotate</code> in this case isn&rsquo;t sufficient.</p>
+<p>Since our case is a LR (Left of root, then right of left), we do a <code>leftRotate</code> of <code>n.left</code>, followed by a <code>rightRotate</code> of n.</p>
+<p>This will first turn LR -&gt; LL, and then we can apply <code>rightRotate</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>      18                              18                                14
+     /    
+    13
+      \       --&gt; leftRotate(13)    14    --&gt; rightRotate(18) --&gt;.  13.    18
+       14                        13.  16                          x   x 16.  x
+        16                       </code></pre><p>We now have a balanced Tree.</p>
+<p>(We could have stopped after the leftRotate(13), the next insert of a value &lt; 18 would have triggered a further rebalance. I think this is why the algorith now specifies an additional rightRotate of 18 so that we can insert a few more elements before have to rebalance)</p>
+<ol start="4">
+<li>RL (Right Left)</li>
 </ol>
-<p>Most of the time, the problem is identifying which of the &ldquo;generic&rdquo; advice are valuable and which of them are pure BS. I used a few broad principles to gauge how effective some piece of advice can be</p>
-<h4 id="1-most-generic-advice-is-useless-proven-otherwise">1. Most &ldquo;generic&rdquo; advice is useless proven otherwise.</h4>
-<p>Thanks to the sheer Noise to Signal ratio of advice flooded on the internet, it is better to discard all new info first and then go pick for valuable ones later, than to hold onto junk in your head.</p>
-<h4 id="2-it-is-never-about-the-message-it-is-always-about-the-messenger">2. It is never about the message. It is always about the messenger</h4>
-<p><strong>Who</strong> gives which &ldquo;generic&rdquo; advice matters the most. No one will take the daily wage labourer sleeping on the roadside saying that &ldquo;hardwork matters&rdquo; seriously. But, when Narayana Murthy or Jeff Bezos or John Carmack says the same thing, everyone perks up their ears. Why ? because the latter are wealthy, and wealth is the signal that will make people listen to you.</p>
-<h4 id="3-follow-the-money">3. Follow the money</h4>
-<p><strong>Follow the money</strong> IMO is the most universal advice that I have seen to be consistently true across domains, people and time.</p>
-<p>What does the person giving me advice stand to gain from me following the advice ? Take Paul Graham&rsquo;s <a href="https://www.paulgraham.com/articles.html">essays</a>. He gives a lot of advice on startups, hardwork, what you should do and how you should approach life, and they pretty much end up all end up with the message implicit and explicit: do a startup.
-It makes sense why PG would say that. He (used to, now retired) runs Y Combinator, probably the most famous tech accelerator in the world, which funds startups in the Seed stage. Given the abysmal statistics around the success rate of startups, the more people that startup, the more options PG has and the more money he stands to make if every talented person pursues a startup in his portfolio that hits it big. PG makes money from people following his advice.</p>
-<p>But is the advice useful to <strong>you</strong>: the follower ? While it is true that YC startups have had billions of dollars of payoff and made billionaires out of founders, the <a href="https://www.investopedia.com/articles/personal-finance/040915/how-many-startups-fail-and-why.asp">statistics</a> of starting up mean that the likelihood of a great payday that makes money beyond your wildest dreams (or something that beats the earnings over say 10 years of working at a FAANG) is probably close to zero. If you factor in the conditionality of success (say, Stanford dropout, living in Bay Area, being able to have a Harvard/Stanford co-founder), the more average your background is , the smaller the empirical probability of your personal success is.</p>
-<h4 id="4-principal-agent-problem">4. Principal agent problem</h4>
-<p>Imagine a housing broker that sells houses and gets a 3% commission from both the buyer and the seller on the sale of a house. The broker, while he might have been hired by you to find a house for you, on the guarantee that he will find the best bargains and haggle with the seller to make buying a house affordable for you,  has every reason to increase the price of a house as much as possible, for every rupee or dollar the price goes up , his bottomline increases.</p>
-<p>Take a fund manager charging a 2% carry per year (carry is the fees as percentage of the total value of the fund being managed). The carry is non-negotiable, so whether a funds performs or not, the fund manager gets to pocket the carry irrespective of how well the fund performs. It is very much in the interest of (especially terrible ones) fund managers to maximise the sizes of the funds being managed, whereas you will have your funds locked up for anywhere between 3-10 years that might have made better returns just being invested in an index fund instead (and probably also redeemable when needed)</p>
-<p>What are online advice sellers gaining and more specifically what hidden traps are there that you don&rsquo;t see, should you choose to follow that advice ? Follower count (yes, in my case, its not something world changing, but the ego boost of seeing your follower count go up is very much real) ? Do they stand to profit off your hardwork, leveraging it, while you pay the opportunity cost of having a family, social life or control over your time ? Do they have liquidity options that you don&rsquo;t (for example, founders can sell their equity in illiquid startup stock on the secondary market, whereas you, the employee only gets worthless ESOPs)</p>
-<p>The thing is, most of the times, you will have to take these bargains knowing that you are still at an disadvantage (eg. ESOPS and low salary at a startup because you can&rsquo;t find a job anywhere else, or you love the startup  and its missions so much that you are willing to take the opportunity cost), but the awareness of the risk plays a role in how one deals with the emotional turmoil of such bets. You can&rsquo;t control the outcomes, but if you know the risks better, you can for sure control your reactions to the said outcomes. And to me that is the key: am I equipped to deal with the emotional consequences of these outcomes ?</p>
-]]></content:encoded>
+
+
+
+
+
+<pre tabindex="0"><code>      18
+        \
+         29
+         /
+       27
+       /
+    22</code></pre><p>Similar to LR, we cannot do just 1 rotation and fix this situation. Let us try to a simple leftRotate on 18 to see why</p>
+
+
+
+
+
+<pre tabindex="0"><code>   18                                    29
+     \                                  /
+     29      --RR(18)-&gt;                18
+   /                                     \   
+  27                                      27
+ /                                       /
+22                                      22 </code></pre><p>Our <code>balanceFactor</code> for the root is now still -2.</p>
+<p>To solve this, we first do a <code>rotateRight(29)</code> and then follow it up with a <code>leftRotate(18)</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>    18                            18                                    27
+      \                             \                                 /   \ 
+      29  rightRotate(29) -&gt;         27        leftRotate(18) -&gt;.   18    29
+     /                              /  \                              \
+   27                              22   29                            22
+  /
+22</code></pre>]]></content:encoded>
     </item>
     <item>
       <title>AVL Trees Part-2 Deletion</title>
       <link>https://gowind.github.io/post/avl_trees_part2/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
       <guid>https://gowind.github.io/post/avl_trees_part2/</guid>
       <description>In [[AVL Trees - Part I]], we saw the need for AVL Trees and how we use the balanceFactor of a node to keep the tree balanced when inserting nodes.</description>
       <content:encoded><![CDATA[<p>In [[AVL Trees - Part I]], we saw the need for AVL Trees and how we use the <code>balanceFactor</code> of a node to keep the tree balanced when inserting nodes.</p>
@@ -1548,6 +1691,87 @@ It makes sense why PG would say that. He (used to, now retired) runs Y Combinato
 		  150265093.      1718327935
 		 /.     \              /       \
 1063987789.    1305025970. 1480403904.  1957770709</code></pre>]]></content:encoded>
+    </item>
+    <item>
+      <title>A Software Engineer is a professional</title>
+      <link>https://gowind.github.io/post/what_do_i_do_as_a_software_engineer/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <guid>https://gowind.github.io/post/what_do_i_do_as_a_software_engineer/</guid>
+      <description>Who is a professional ? In my words, a professional is a high skilled person, who can be relied upon to fulfil expectations in the area at which he is skilled.</description>
+      <content:encoded><![CDATA[<p>Who is a professional ? In my words, a professional is a high skilled person, who can be relied upon to fulfil expectations in the area at which he is skilled.</p>
+<p>3 words are important here</p>
+<ol>
+<li>skill</li>
+<li>relied upon (reliability)</li>
+<li>expectations</li>
+</ol>
+<h3 id="skills">Skills</h3>
+<p>As a Software Engineer, your skill is your ability to work with software.
+You are programming software to fulfil expectations.</p>
+<p>you employ your skill in software and programming, to do what needs to be done.</p>
+<h3 id="expectations">Expectations</h3>
+<p>But what needs to be done ?</p>
+<p>My team maintains a feature as a part of a large product that serves 100M+ customers all over the world. The feature provides incentives to the user to continue using our product. The feature has a certain definition and behaviour and must serve all the users on our platform.</p>
+<p>What my team (and therefore I) must do is a simple statement:
+Identify and improve this feature to improve usage of our product and retain more customers.</p>
+<ol>
+<li>Communication: To do this effectively, my team has to talk to marketing managers to understand how they market our product and how we can provide incentives to attract more customers. Since Marketing is heavily dependent on the country/demographics/language of our audience, we have to put in the effort to consider the various needs before adding or extending the features.</li>
+<li>Scale: We cannot launch features that cannot scale to our entire customer base. so before we decide to add more features, we have to see if we can reliably scale to extend our features to all of our users, otherwise it will have a net impact</li>
+<li>Planning and estimation: Developers are expensive. For anything we set out to do, we must be capable of assessing the difficulty of tasks, risks that might delay our estimates and most importantly plan the order of things to be done, so that we aren&rsquo;t wasting time doing a task that will ultimately have to be discarded</li>
+<li>Measurement and Analytics : most features are experimental in nature (ie, you do not know if it made an impact or not). To gauge the success of anything we add (or remove), we need to measure the impact. Our job doesn&rsquo;t just stop once we yeet our code changes into Production. We provide tools and data to assess the impact of our changes so that PMs and Marketing people can make informed decisions.</li>
+</ol>
+<p>Notice how programming is a <em>critical</em> but small part of my responsibilities. My work is a superset of programming related tasks. What I am doing is anything and everything to support this feature that my team is expected to maintain as a part of the larger product and the company.</p>
+<p>We get to the final part: how am I doing it ??</p>
+<h3 id="reliability">Reliability</h3>
+<p>Any automation/script is only as good as how many times you have to manually intervene.
+If you have a computer, that is super fast, but has to be restarted every 5 mins, it is worthless than a calculator because you can never depend on it.</p>
+<p>Similarly, the most talented developers are only as good as how long they can be relied upon and how frequently their managers have to &ldquo;manage&rdquo; them.</p>
+<p>The best software developers are the ones that managers can forget about knowing because they know that they can manage themselves.</p>
+<p>The worst software developers are the ones that, like babies, need a full-time caretaker to make sure they aren&rsquo;t soiling themselves or causing ruckus in the house or the nursery.</p>
+<p>Your team and manager should be able to count on you to consistently deliver, with the least amount of intervention possible.</p>
+<p>This doesn&rsquo;t mean that they never have to message you or setup a meeting or provide you information or basically not talk to you at all, nor does it mean you are expected to do everything by yourself without seeking help.</p>
+<p>Your manager and team are happy in the fact that you will seek help, when needed, inform them of the status of your work, really dive into the details and keep track of everything that needs to be done.</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Advice on the internet</title>
+      <link>https://gowind.github.io/post/advice_on_the_internet/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <guid>https://gowind.github.io/post/advice_on_the_internet/</guid>
+      <description>TL;DR: In today&amp;rsquo;s information rich world, Learning which advice to ignore is a skill.&#xA;This post is not advice, rather observations based on experience.</description>
+      <content:encoded><![CDATA[<p>TL;DR: In today&rsquo;s information rich world, Learning which advice to ignore is a skill.</p>
+<p>This post is not advice, rather observations based on experience.</p>
+<p>I  classify advice into 2 broad buckets</p>
+<ol>
+<li>Tactical / specific advice</li>
+<li>Generic advice</li>
+</ol>
+<h2 id="tactical-advice">Tactical advice</h2>
+<p>Tactical / specific advice , is highly specific. This bucket, IMO, consists of advice whose effectiveness can be gauged very accurately and often very quickly.Stuck on a programming problem ? Ask a senior and he can tell you how to solve it and you do. Need to file taxes ? Your tax accountant helps you file taxes and reduces your tax burden. In this case there is a strict material number attached to the gain you make for his services.</p>
+<h2 id="generic-advice">Generic advice</h2>
+<p>Generic / strategic / philosphical advice. These are advice that are &ldquo;generic&rdquo;, as in both applicable to large swaths of the population and very broad, applicable to your life or career at any many points in time. Gauging the effectiveness of such advice is hard, sometimes nigh on impossible because the converse of these statements are often not true. For example, take the statement: &ldquo;hardwork makes you rich&rdquo;. The converse &ldquo;being rich means you did hardwork&rdquo; is not always true (or heck, is not even necessary). Also words like &ldquo;hardwork&rdquo; and &ldquo;rich&rdquo; are very subjective and for it to be a truly scientific statement, you need to control for all other variables (circumstances, education, luck, the exact year in which you did hardwork).</p>
+<p>Generic advice is found everywhere on the internet today. The cost of disbursing information has gone down ~0, so you will find everyone handing out advice on how to live life, what are the right principles to have in life, what you must do and what you must eat.</p>
+<h2 id="tactical-advice-is-relatively-easy-to-evaluate">Tactical advice is relatively easy to evaluate</h2>
+<ol>
+<li>Is the advice from a professional  (i.e. someone getting paid for their speciality) and is the advice for something related to that profession ?</li>
+<li>and is there a direct metric that tells me how much I stand to gain if following that advice ?</li>
+</ol>
+<p>Most of the time, the problem is identifying which of the &ldquo;generic&rdquo; advice are valuable and which of them are pure BS. I used a few broad principles to gauge how effective some piece of advice can be</p>
+<h4 id="1-most-generic-advice-is-useless-proven-otherwise">1. Most &ldquo;generic&rdquo; advice is useless proven otherwise.</h4>
+<p>Thanks to the sheer Noise to Signal ratio of advice flooded on the internet, it is better to discard all new info first and then go pick for valuable ones later, than to hold onto junk in your head.</p>
+<h4 id="2-it-is-never-about-the-message-it-is-always-about-the-messenger">2. It is never about the message. It is always about the messenger</h4>
+<p><strong>Who</strong> gives which &ldquo;generic&rdquo; advice matters the most. No one will take the daily wage labourer sleeping on the roadside saying that &ldquo;hardwork matters&rdquo; seriously. But, when Narayana Murthy or Jeff Bezos or John Carmack says the same thing, everyone perks up their ears. Why ? because the latter are wealthy, and wealth is the signal that will make people listen to you.</p>
+<h4 id="3-follow-the-money">3. Follow the money</h4>
+<p><strong>Follow the money</strong> IMO is the most universal advice that I have seen to be consistently true across domains, people and time.</p>
+<p>What does the person giving me advice stand to gain from me following the advice ? Take Paul Graham&rsquo;s <a href="https://www.paulgraham.com/articles.html">essays</a>. He gives a lot of advice on startups, hardwork, what you should do and how you should approach life, and they pretty much end up all end up with the message implicit and explicit: do a startup.
+It makes sense why PG would say that. He (used to, now retired) runs Y Combinator, probably the most famous tech accelerator in the world, which funds startups in the Seed stage. Given the abysmal statistics around the success rate of startups, the more people that startup, the more options PG has and the more money he stands to make if every talented person pursues a startup in his portfolio that hits it big. PG makes money from people following his advice.</p>
+<p>But is the advice useful to <strong>you</strong>: the follower ? While it is true that YC startups have had billions of dollars of payoff and made billionaires out of founders, the <a href="https://www.investopedia.com/articles/personal-finance/040915/how-many-startups-fail-and-why.asp">statistics</a> of starting up mean that the likelihood of a great payday that makes money beyond your wildest dreams (or something that beats the earnings over say 10 years of working at a FAANG) is probably close to zero. If you factor in the conditionality of success (say, Stanford dropout, living in Bay Area, being able to have a Harvard/Stanford co-founder), the more average your background is , the smaller the empirical probability of your personal success is.</p>
+<h4 id="4-principal-agent-problem">4. Principal agent problem</h4>
+<p>Imagine a housing broker that sells houses and gets a 3% commission from both the buyer and the seller on the sale of a house. The broker, while he might have been hired by you to find a house for you, on the guarantee that he will find the best bargains and haggle with the seller to make buying a house affordable for you,  has every reason to increase the price of a house as much as possible, for every rupee or dollar the price goes up , his bottomline increases.</p>
+<p>Take a fund manager charging a 2% carry per year (carry is the fees as percentage of the total value of the fund being managed). The carry is non-negotiable, so whether a funds performs or not, the fund manager gets to pocket the carry irrespective of how well the fund performs. It is very much in the interest of (especially terrible ones) fund managers to maximise the sizes of the funds being managed, whereas you will have your funds locked up for anywhere between 3-10 years that might have made better returns just being invested in an index fund instead (and probably also redeemable when needed)</p>
+<p>What are online advice sellers gaining and more specifically what hidden traps are there that you don&rsquo;t see, should you choose to follow that advice ? Follower count (yes, in my case, its not something world changing, but the ego boost of seeing your follower count go up is very much real) ? Do they stand to profit off your hardwork, leveraging it, while you pay the opportunity cost of having a family, social life or control over your time ? Do they have liquidity options that you don&rsquo;t (for example, founders can sell their equity in illiquid startup stock on the secondary market, whereas you, the employee only gets worthless ESOPs)</p>
+<p>The thing is, most of the times, you will have to take these bargains knowing that you are still at an disadvantage (eg. ESOPS and low salary at a startup because you can&rsquo;t find a job anywhere else, or you love the startup  and its missions so much that you are willing to take the opportunity cost), but the awareness of the risk plays a role in how one deals with the emotional turmoil of such bets. You can&rsquo;t control the outcomes, but if you know the risks better, you can for sure control your reactions to the said outcomes. And to me that is the key: am I equipped to deal with the emotional consequences of these outcomes ?</p>
+]]></content:encoded>
     </item>
     <item>
       <title>C is the universal ABI</title>
@@ -3263,230 +3487,6 @@ Anywhere, here is how it works :</p>
 <p>What is an ELF is currently being documented in  [[From Source Code to Hello World/Introduction]]</p>
 <p>[[From Source Code to Hello World/What is <code>glibc</code>]] tries to explain what glibc is and how it or something like it is essential to any platform</p>
 ]]></content:encoded>
-    </item>
-    <item>
-      <title>What problem does AVL Tree solve?</title>
-      <link>https://gowind.github.io/post/avl_trees_part1/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
-      <guid>https://gowind.github.io/post/avl_trees_part1/</guid>
-      <description>Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order</description>
-      <content:encoded><![CDATA[<p>Imagine you have a Binary Search Tree implementation and you are inserting elements in ascending order</p>
-<p>[11., 12, 13, 14, 15, 16, 17, 18]</p>
-<p>Your Binary Search Tree would look like this</p>
-
-
-
-
-
-<pre tabindex="0"><code>11
-  12
-    13
-      14
-        15
-          16
-            17
-              18 </code></pre><p>Your tree effectively turns into a Linear list with O(n) access, instead of O(h) access where h ~ log2(n)</p>
-<p>This is an <strong>unbalanced</strong> tree and the more unbalanced a tree is, the more avg. access is O(n) instead log2(n)</p>
-<p>(Similarly, if we are turning a descending sorted array into a Binary Search Tree, we will run into the mirror image of the above tree)</p>
-<p>AVL Trees are a <strong>balanced</strong> tree, where after very insertion and deletion, we <strong>balance</strong> the tree if it becomes unbalanced.</p>
-<h5 id="by-keeping-a-tree-balanced--we-are-ensuring-that-access-remains-as-close-to-on-as-possible">By keeping a tree <code>balanced</code> , we are ensuring that access remains as close to O(n) as possible</h5>
-<h4 id="how-do-we-know-a-tree-is-unbalanced-">How do we know a tree is unbalanced ?</h4>
-<p>We use a value <code>balanceFactor</code> to determine if a node is balanced or not.</p>
-<p>Before we formulated <code>balanceFactor</code>, recall that :
-The height of the tree is the distance from the node to the lowest leaf in its left or right subtree.
-The height of a leaf is <code>0</code>. <code>height(leaf) -&gt; o</code>
-The height of a <code>null</code> leaf is also 0. <code>height(null) -&gt; 0</code>
-Height of a node = <code>1 + max(height(node.left), height(node.right))</code></p>
-<p><code>balanceFactor = height(left_subtree) - height(right_subtree)</code>
-If the <code>balanceFactor</code> is &lt; -1 or &gt; 1 , then the tree is <strong>unbalanced</strong>.</p>
-<p>When we start with an empty tree, our tree is balanced. On every insert or delete, we insert/delete into the left or the right subtrees of a current node.
-The insertion/deletion disturbs the existing balance of our tree, so we perform a check for each node in our path from the root, until the leaf node we inserted, if the node is balanced.
-If any node is unbalanced, then we <code>rebalance</code> that node</p>
-
-
-
-
-
-<pre tabindex="0"><code>insert/delete(node, val):
-  if val &lt; node.val:
-	  node.left = insert/delete(node.left, val)
-  else:
-      node.right = insert/delete(node.right, val)
-  balance = calculate_balance(node)
-  if balance &lt; -1 or balance &gt; 1 :
-	  # rebalance</code></pre><h4 id="how-do-we-do-rebalance-">How do we do rebalance ?</h4>
-<p>There are 4 conditions that will cause rebalancing. We name them as
-Left Left
-Left right
-Right Right
-Right Left</p>
-<ol>
-<li>LL (Left  Left)</li>
-</ol>
-
-
-
-
-
-<pre tabindex="0"><code>      14
-    13
-  12
-10      </code></pre><p>The <code>balanceFactor</code> of the root with key <code>14</code>, = height(left_subtree) - height(right_subtree)
-height(left_subtree) = 2
-height(right_subtree) = 0
-<code>balanceFactor</code> &gt; 1, so we rebalance.
-Rebalancing this condition is done by a <code>rightRotate</code>.</p>
-<p>The <code>rightRotate</code> of a node <code>n</code> is as follows</p>
-
-
-
-
-
-<pre tabindex="0"><code>def rightRotate(n):
-  left = n.left
-  left_right = left.right
-  new_root = left
-  new_root.right = n
-  n.left = left_right # since we moved n -&gt; left.right, left.right -&gt; n.left
-  return new_root</code></pre><p>Our <code>unbalanced</code> node <code>n</code> becomes</p>
-
-
-
-
-
-<pre tabindex="0"><code>     14                      13
-    13        ---&gt;         12  14
-  12                     10
-10  </code></pre><p><code>balanceFactor</code> of the root is now <code>1.</code></p>
-<ol start="2">
-<li>RR (Right Right)</li>
-</ol>
-
-
-
-
-
-<pre tabindex="0"><code>      14
-        15
-          16
-            17      </code></pre><p>The <code>balanceFactor</code> of the root with key <code>14</code>, = height(left_subtree) - height(right_subtree)
-height(left_subtree) = 0
-height(right_subtree) = 2
-<code>balanceFactor</code> &lt; -1, so we rebalance.
-Rebalancing this condition is done by a <code>leftRotate</code>.</p>
-
-
-
-
-
-<pre tabindex="0"><code>def leftRotate(n):
-  right = n.right
-  right_left = right.left
-  new_root = right
-  new_root.left = n
-  n.right = right_left # since we changed n.right to root
-  return new_root</code></pre><p>The <code>leftRotate</code> turns out tree rooted at 14, to this:</p>
-
-
-
-
-
-<pre tabindex="0"><code></code></pre><pre><code>  14                                 15
-    \                               /    \
-     15            ----&gt;          14      16
-        \                                     \
-         16                                     17
-           \
-            17      
-</code></pre>
-
-
-
-
-
-<pre tabindex="0"><code></code></pre><p>The next 2 conditions will need a combination of left and right rotates to rebalance.</p>
-<ol start="3">
-<li>Left Right</li>
-</ol>
-
-
-
-
-
-<pre tabindex="0"><code>      18
-      /
-    13
-      \
-      14
-        \
-        16      </code></pre><p>In this situation, a single right rotation wouldn&rsquo;t solve the problem. Why ? Lets try to do a simple LL fixup, which performs a <code>rotateRight(18)</code></p>
-
-
-
-
-
-<pre tabindex="0"><code>       18                                       13
-      /                                          \
-    13             -----&gt; LL(18)                  18
-      \                                          /
-       14                                      14
-        \                                       \
-         16                                     16</code></pre><p><code>13</code> is the new root. <code>18</code> becomes 13&rsquo;s right. <code>left_right</code> from <code>rightRotate()</code> (14) become&rsquo;s <code>n.left</code> (18&rsquo;s left). <code>x</code> mark&rsquo;s <code>null</code> nodes</p>
-<p>If we calculate the <code>balanceFactor</code> of 13, it is now <code>-2</code> instead of becoming 1. So doing a single <code>rightRotate</code> in this case isn&rsquo;t sufficient.</p>
-<p>Since our case is a LR (Left of root, then right of left), we do a <code>leftRotate</code> of <code>n.left</code>, followed by a <code>rightRotate</code> of n.</p>
-<p>This will first turn LR -&gt; LL, and then we can apply <code>rightRotate</code></p>
-
-
-
-
-
-<pre tabindex="0"><code>      18                              18                                14
-     /    
-    13
-      \       --&gt; leftRotate(13)    14    --&gt; rightRotate(18) --&gt;.  13.    18
-       14                        13.  16                          x   x 16.  x
-        16                       </code></pre><p>We now have a balanced Tree.</p>
-<p>(We could have stopped after the leftRotate(13), the next insert of a value &lt; 18 would have triggered a further rebalance. I think this is why the algorith now specifies an additional rightRotate of 18 so that we can insert a few more elements before have to rebalance)</p>
-<ol start="4">
-<li>RL (Right Left)</li>
-</ol>
-
-
-
-
-
-<pre tabindex="0"><code>      18
-        \
-         29
-         /
-       27
-       /
-    22</code></pre><p>Similar to LR, we cannot do just 1 rotation and fix this situation. Let us try to a simple leftRotate on 18 to see why</p>
-
-
-
-
-
-<pre tabindex="0"><code>   18                                    29
-     \                                  /
-     29      --RR(18)-&gt;                18
-   /                                     \   
-  27                                      27
- /                                       /
-22                                      22 </code></pre><p>Our <code>balanceFactor</code> for the root is now still -2.</p>
-<p>To solve this, we first do a <code>rotateRight(29)</code> and then follow it up with a <code>leftRotate(18)</code></p>
-
-
-
-
-
-<pre tabindex="0"><code>    18                            18                                    27
-      \                             \                                 /   \ 
-      29  rightRotate(29) -&gt;         27        leftRotate(18) -&gt;.   18    29
-     /                              /  \                              \
-   27                              22   29                            22
-  /
-22</code></pre>]]></content:encoded>
     </item>
     <item>
       <title>Why is my event loop still running?</title>

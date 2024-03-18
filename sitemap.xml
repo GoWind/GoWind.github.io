@@ -35,11 +35,15 @@
     <loc>https://gowind.github.io/post/jest_guide/</loc>
     <lastmod>2023-09-18T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://gowind.github.io/post/avl_trees_part1/</loc>
+    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://gowind.github.io/post/avl_trees_part2/</loc>
+    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://gowind.github.io/post/what_do_i_do_as_a_software_engineer/</loc>
   </url><url>
     <loc>https://gowind.github.io/post/advice_on_the_internet/</loc>
-  </url><url>
-    <loc>https://gowind.github.io/post/avl_trees_part2/</loc>
   </url><url>
     <loc>https://gowind.github.io/post/c_is_the_universal_abi/</loc>
   </url><url>
@@ -76,8 +80,6 @@
     <loc>https://gowind.github.io/post/useful_tools/</loc>
   </url><url>
     <loc>https://gowind.github.io/post/start_here/</loc>
-  </url><url>
-    <loc>https://gowind.github.io/post/avl_trees_part1/</loc>
   </url><url>
     <loc>https://gowind.github.io/post/why_is_my_event_loop_still_alive/</loc>
   </url><url>

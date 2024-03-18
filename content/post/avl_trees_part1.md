@@ -1,5 +1,5 @@
 ---
-title: AVL Trees Part-1: What problem does AVL Tree solve?
+title: AVL Trees Part-1 What problem does AVL Tree solve?
 date: 2023-09-07
 ---
 

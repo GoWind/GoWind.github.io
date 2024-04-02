@@ -13,7 +13,7 @@ description = "Wannabe electron bender"
 keywords = "Govind zig low-level"
 favicon = "favicons"
 customCss = []
-mainSections = ["posts"]
+mainSections = ["posts", "notes"]
 twitterHandle = ["DeepknowledgeU"]
 
   [params.author]

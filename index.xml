@@ -11,6 +11,262 @@
     <lastBuildDate>Fri, 15 Mar 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://gowind.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Mom, where is my library ?</title>
+      <link>https://gowind.github.io/post/mom_where_is_my_library/</link>
+      <pubDate>Fri, 02 Aug 2024 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <guid>https://gowind.github.io/post/mom_where_is_my_library/</guid>
+      <description>So I wanted to use the ggml library to build some neural networks in C. The recipe was simple</description>
+      <content:encoded><![CDATA[<p>So I wanted to use the <a href="https://github.com/ggerganov/ggml">ggml</a> library to build some neural networks in C. The recipe was simple</p>
+<ol>
+<li>Clone the ggml repo into <code>~/personal/ggml</code></li>
+<li>Build the shared libraries needed to use ggml from my code</li>
+<li>Use the shared libraries</li>
+</ol>
+<p>To build the shared library, I created a <code>ggml_lib</code> folder adjacent to the <code>ggml</code> library:</p>
+
+
+
+
+
+<pre tabindex="0"><code>.
+├── ggml
+├── ggml_lib</code></pre><p>Then, <code>cd ggml_lib</code>
+Followed by:</p>
+
+
+
+
+
+<pre tabindex="0"><code>cmake ../ggml
+cmake --build .
+cmake --install . --prefix $(PWD)</code></pre><p>This installs the generated shared library under <code>ggml_lib/lib</code> and the headers under <code>ggml_lib/include</code></p>
+<p>So these are all we need to start using ggml, here is a simple main that attempts. to create a couple of tensors and then frees them</p>
+
+
+
+
+
+<pre tabindex="0"><code>#include &#34;ggml.h&#34;
+
+int main() {
+   struct ggml_init_params params  = {
+            .mem_size   = 2048,
+            .mem_buffer = NULL,
+            .no_alloc   = false, 
+    };
+
+    // create context
+    struct ggml_context* ctx = ggml_init(params);
+
+    struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 5, 5);
+    struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 10, 10);
+
+    ggml_free(ctx);
+}</code></pre>
+
+
+
+
+<pre tabindex="0"><code>$ gcc use_ggml.c -o use_ggml
+use_ggml.c:1:10: fatal error: &#39;ggml.h&#39; file not found
+#include &#34;ggml.h&#34;
+         ^~~~~~~~</code></pre><p>Of course, your compiler cannot find the <code>ggml.h</code> Header file, so you have to specify a path to the compiler to search for this Header. We do this by passing the location to the Header file using the <code>-I</code> flag</p>
+
+
+
+
+
+<pre tabindex="0"><code>$ gcc use_ggml.c -Iggml_lib/include -o use_ggml
+ld: Undefined symbols:
+  _ggml_free, referenced from:
+      _main in use_ggml-0e7b1c.o
+  _ggml_init, referenced from:
+      _main in use_ggml-0e7b1c.o
+  _ggml_new_tensor_2d, referenced from:
+      _main in use_ggml-0e7b1c.o
+      _main in use_ggml-0e7b1c.o
+clang: error: linker command failed with exit code 1 (use -v to see invocation)</code></pre><p>Now, your compiler can find the header file, but when attempt to create a final executable , it cannot find the code to the actual functions <code>ggml_init, ggml_free</code> (the <code>_</code> prefix is a macOS platform detail where the names of your functions are prefixed with an <code>_</code> ). So now we have to tell the compiler to link against our dynamic library : <code>ggml</code>, we do this by passing the <code>-lggml</code> flag (the convention is <code>-lname_of_the_library_providing_your_code</code>)</p>
+<p>So how can my compiler find where a library is located ? The compiler (and the linker) maintain a bunch of &ldquo;SEARCH PATHS&rdquo; where dynamic libraries are located and when attempting to link to a shared library, will attempt to find the library in the SEARCH PATHs before giving</p>
+<p>Here is what I found reported as SEARCH PATHS on my mac laptop</p>
+
+
+
+
+
+<pre tabindex="0"><code>$ gcc --print-search-dirs
+programs: =/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+libraries: =/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0
+
+
+$ ld -v
+@(#)PROGRAM:ld  PROJECT:dyld-1015.7
+BUILD 18:48:48 Aug 22 2023
+....
+Library search paths:
+Framework search paths:</code></pre><p>In addition, there are standard paths like <code>/usr/lib</code> or <code>/usr/local/lib</code> that your linker and compiler will search for to find shared libraries</p>
+<p>Coming back to our example, our installed shared library is not in any of these location, so I must specify the path to <code>ggml_lib/lib</code> to the compiler so that it can find the generated ggml dynamic lib (dylib)</p>
+
+
+
+
+
+<pre tabindex="0"><code>gcc use_ggml.c -Iinclude/ -Lggml_lib/lib -o use_ggml  -lggml
+
+-lggml , link against the dynamic library ggml
+-Lggml_lib/lb, you will find the file libggml.dylib under ggml_lib/lib</code></pre><h2 id="problem">Problem</h2>
+<p>Okay, it works. Now I just have to run my binary <code>use_ggml</code> right ? Right ?</p>
+
+
+
+
+
+<pre tabindex="0"><code>$ ./use_ggml
+dyld[35649]: Library not loaded: @rpath/libggml.dylib
+  Referenced from: &lt;8B6DF1BE-A897-383F-AB20-DBDB61039351&gt; /Users/govind/personal/use_ggml
+  Reason: no LC_RPATH&#39;s found
+[1]    35649 abort      ./use_ggml</code></pre><p>What happened ? Didn&rsquo;t we find our <code>ggml</code> dynamic library and set its location correctly when compiling the program ? Why is that when we run this code now, we run into some errors about the Library not being loaded ?</p>
+<h2 id="answer-the-dynamic-linker">Answer: The dynamic linker</h2>
+<p>Recall that a <a href="https://en.wikipedia.org/wiki/Shared_library">shared library</a> is a piece of executable code, that is shared across multiple binaries. This means that this piece of code can be loaded into other binaries. For example, if you want to use graphics, rather than create big binaries with all the graphics related operations, the OS will provide a shared library for graphics. As an executable, you need not bring your own Graphics related libraries, but just declare a dependency on the shared graphics library and it is the OS&rsquo;s responsibility now to provide you the shared library when your binary is executed.</p>
+<p>Who is responsible for loading this shared library into your binary when it is run ? It is the <strong><a href="https://en.wikipedia.org/wiki/Dynamic_linker">DYNAMIC LINKER</a></strong> which loads and links the needed shared libraries at runtime.</p>
+<p>When you run a binary , example : <code>./use_ggml</code>, the dynamic linker <code>dyld</code> is executed by the operation system, which then reads &ldquo;LOAD COMMANDS&rdquo; from the executable to figure out how to setup the executable in memory, before the executable is actually executed (<code>main</code> of your program)</p>
+<p>On macOS binaries,  you can inspect your binary&rsquo;s dependencies using the <code>otool</code> command</p>
+
+
+
+
+
+<pre tabindex="0"><code>otool -l use_ggml
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name @rpath/libggml.dylib (offset 24)
+   time stamp 2 Thu Jan  1 01:00:02 1970
+      current version 0.0.0
+compatibility version 0.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 01:00:02 1970</code></pre><p>the <code>LC_LOAD_DYLIB</code> is a command to the <code>dyld</code> to load a dynamic library. Note the <code>@rpath</code> macro.
+The <code>@rpath</code> is a macro that expands to <code>RUNTIME_PATH</code> , a path of locations at runtime (when the executable starts executing) where <code>dyld</code> will search for shared libraries.
+The <code>@rpath</code> isn&rsquo;t a location in itself, but is set when the executable&rsquo;s image is being created in the memory.</p>
+<p>The value of <code>@rpath</code> is set by an <code>LC_RPATH</code> command that sets the rpath to a particular location (thus providing the location to our dynlib as <code>/path/to/libggml.dylib</code>) , which in our case, is missing and thus causing <code>dyld</code> to throw an error when attempting to run our executable.</p>
+<h3 id="so-how-do-we-fix-this-">So how do we fix this ?</h3>
+<p>There are a few solutions, each of which will helps us understand a bit further on how loading dynamic libraries work</p>
+<ol>
+<li>Using <code>DYLD_LIBRARY_PATH</code> (command: <code>DYLD_LIBRARY_PATH=. ./use_ggml</code>)</li>
+</ol>
+<p>The <code>DYLD_LIBRARY_PATH</code> is an environment variable that the dynamic linker parses before loading an executable. You can use DYLD_LIBRARY_PATH to provide a colon separated list of directories to search for shared libraries.</p>
+<p>Here is an example of using DYLD_LIBRARY_PATH to let dyld know where to look for libggml.dylib</p>
+
+
+
+
+
+<pre tabindex="0"><code>~/personal/ggml-node
+$ DYLD_LIBRARY_PATH=./ggml_lib/lib ./use_ggml
+
+~/personal/ggml-node</code></pre><p>Success !!</p>
+<ol start="2">
+<li>Setting the <code>rpath</code> when creating the executable</li>
+</ol>
+<p>We pass flags to the linker when compiling our executable (as an aside, read Sanglard&rsquo;s <a href="https://fabiensanglard.net/dc/index.php">brilliant</a> articles on how compiler drivers  function). We can expand the <code>rpath</code> macro to a location that is dependent on where the executable is located</p>
+
+
+
+
+
+<pre tabindex="0"><code>gcc use_ggml.c -Iinclude/ -Lggml_lib/lib -o use_ggml  -lggml -Wl,-rpath,@executable_path/ggml_lib/lib</code></pre><p><code>-Wl,option1,option2</code>  is how we pass flags to the linker via <code>gcc</code> compiler driver. The <code>@executable_path</code> is a placeholder to the location of the executable. What this says is: when looking for <code>libggml.dylib</code>, look it in the directory : <code>LOCATION_OF_EXECUTABLE/ggml_lib</code>. So if your executable is located at <code>/Users/personal</code> then look up <code>libggml.dylib</code> in <code>/Users/personal/ggml_lib</code>
+There are other placeholders such as <code>@loader_path</code> , but lets not look into them now to avoid confusion.</p>
+<p>Once we set the <code>rpath</code>, lets look at the LOAD_COMMANDS in the executable to see if anything has changed</p>
+
+
+
+
+
+<pre tabindex="0"><code>otool -l use_ggml
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name @rpath/libggml.dylib (offset 24)
+   time stamp 2 Thu Jan  1 01:00:02 1970
+      current version 0.0.0
+compatibility version 0.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 01:00:02 1970
+      current version 1336.0.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_RPATH
+      cmdsize 48
+         path @executable_path/ggml_lib/lib (offset 12)</code></pre><p>BINGO ! Remember the missing <code>LC_RPATH</code> command that was the cause of the dyld error ? We now have an LC_RPATH command that points to the directory <code>ggml_lib/lib</code> relative to the location of the executable.</p>
+<p>So, does this solve the problem ?</p>
+
+
+
+
+
+<pre tabindex="0"><code>$ ./use_ggml
+
+~/personal </code></pre><p>YES ! A resounding YES !</p>
+<h2 id="summary">Summary</h2>
+<p>Turns out finding and loading shared libraries is a actually a tricky problem when shipping native applications. A lot of this complexity is thankfully handled by the OS and package managers, but it is good to understand the problems faced by native applications to truly appreciate all the QoL improvements that package managers make for us.</p>
+<h3 id="appendix">Appendix</h3>
+<p>The difference between @executable_path and @loader_path in RPATH (Run-time search PATH) variables is illustrated as follows</p>
+<ol>
+<li>@executable_path:
+<ul>
+<li>Definition: This variable refers to the directory containing the main executable of the process.</li>
+<li>Usage: It&rsquo;s primarily used when you want to specify paths relative to the main application executable.</li>
+<li>Behavior: It always points to the same location, regardless of which library or plugin is currently being loaded.</li>
+</ul>
+</li>
+<li>@loader_path:
+<ul>
+<li>Definition: This variable refers to the directory containing the binary (executable or library) that is currently being loaded.</li>
+<li>Usage: It&rsquo;s used when you want to specify paths relative to the current library or executable being loaded.</li>
+<li>Behavior: Its value can change depending on which binary is currently being processed by the dynamic loader.</li>
+</ul>
+</li>
+</ol>
+<p>@executable_path always refers to the main application executable&rsquo;s directory.
+@loader_path refers to the directory of the binary currently being loaded, which could be the main executable, a library, or a plugin.</p>
+<p>Example Scenario:</p>
+<p>Imagine an application structure like this:</p>
+
+
+
+
+
+<pre tabindex="0"><code>/Applications/MyApp.app/
+    Contents/
+        MacOS/
+            MyApp (main executable)
+        Frameworks/
+            LibA.dylib
+            LibB.dylib
+        PlugIns/
+            PluginC.dylib</code></pre><ul>
+<li>Using @executable_path:
+<ul>
+<li>In MyApp: @executable_path/../Frameworks/LibA.dylib</li>
+<li>This always refers to /Applications/MyApp.app/Contents/MacOS/</li>
+</ul>
+</li>
+<li>Using @loader_path:
+<ul>
+<li>In MyApp: @loader_path/../Frameworks/LibA.dylib (Same as @executable_path in this case)</li>
+<li>In LibA.dylib: @loader_path/LibB.dylib (Refers to /Applications/MyApp.app/Contents/Frameworks/)</li>
+<li>In PluginC.dylib: @loader_path/../../Frameworks/LibA.dylib (Refers to /Applications/MyApp.app/Contents/PlugIns/)</li>
+</ul>
+</li>
+</ul>
+]]></content:encoded>
+    </item>
+    <item>
       <title>A template for Self Evaluation</title>
       <link>https://gowind.github.io/post/self_evaluation/</link>
       <pubDate>Thu, 27 Jun 2024 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
@@ -36,6 +292,131 @@ achievements</p>
 <p>&hellip;..</p>
 <p>&hellip;..</p>
 <h3 id="what-will-your-answer-be-">What will your answer be ?</h3>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Solving Tensor Puzzles</title>
+      <link>https://gowind.github.io/post/solving_tensor_puzzles/</link>
+      <pubDate>Thu, 27 Jun 2024 00:00:00 +0000</pubDate><author>mailto:petrovgovind@gmail.com (Govind)</author>
+      <guid>https://gowind.github.io/post/solving_tensor_puzzles/</guid>
+      <description>When attempting to learn about Neural Networks, I ran into constant stumbling blocks with Pytorch, especially around Tensor broadcasting and dimension extensions.</description>
+      <content:encoded><![CDATA[<p>When attempting to learn about Neural Networks, I ran into constant stumbling blocks with Pytorch, especially around
+Tensor broadcasting and dimension extensions.</p>
+<p>I found out about <a href="https://github.com/srush/Tensor-Puzzles">Tensor Puzzles</a>, a set of exercises to get good at manipulating tensors.
+I admit, I cheated, incapable of making any progress, but reading through the solutions offered by <a href="https://www.ishan.coffee/">Ishan</a> on his blog.</p>
+<p>But is it really cheating if you try to learn how it works ? ** I would say no**</p>
+<p>This is my attempt to really learn the ins and outs of Tensor broadcasting and dimensions.</p>
+<p>The puzzle, provides 2 functions: <code>arange</code> and <code>where</code>, and you have to build each of the fn required based on top of these 2 fns
+and the fns previously implemented.</p>
+<h4 id="arangei">arange(i)</h4>
+<p><code>arange(i)</code> -&gt; <code>tensor([0, 1, 2, 3, 4])</code></p>
+<h4 id="wherearr-v-w">where(arr, v, w)</h4>
+<p><code>where([True, True, False], 1, 0)</code> -&gt; <code>tensor([1, 1, 0])</code> (when arr[i] is True, out[i] = v else out out[i] = w)</p>
+<p>Lets Begin !</p>
+<h4 id="ones">ones</h4>
+<p>Solution: <code>where(arange(i) &gt; = 0, 1, 0)</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>pytorch
+&gt;&gt;&gt; arange(5) &gt;= 0
+tensor([True, True, True, True, True])</code></pre><p>The tensor operation <code>&gt;=</code> is implemented element-wise on each element in arange(5).
+This ends up being true for all elements thus <code>[True,....]</code>
+When we use <code>where([True,...], 1, 0)</code>, this results in a <code>tensor([1, 1,...])</code></p>
+<h4 id="sum">sum</h4>
+<p>Solution: <code>ones(a.shape[0]) @ a[:, None]</code></p>
+<p>I am not 100% how the <code>@</code> (<strong>matmul</strong> dunder method) work.
+when <code>a = tensor([1, 2, 3, 4, 5])</code>, a has a shape of (5,). <code>a[:, None]</code> adds a trailing dimension to a,
+such that a now has a shape of `(5, 1)
+thus a now becomes</p>
+
+
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>tensor([[<span style="color:#ae81ff">0</span>],
+</span></span><span style="display:flex;"><span>        [<span style="color:#ae81ff">1</span>],
+</span></span><span style="display:flex;"><span>        [<span style="color:#ae81ff">2</span>],
+</span></span><span style="display:flex;"><span>        [<span style="color:#ae81ff">3</span>],
+</span></span><span style="display:flex;"><span>        [<span style="color:#ae81ff">4</span>]])</span></span></code></pre></div><p>multiply tensor([1, 1, 1, 1, 1]) with a now seems to result in a standard vector dot product, thus resulting in <code>tensor([10])</code></p>
+<h4 id="outer">outer</h4>
+<p>Solution: a[:, None] @ b[None, :]</p>
+<p>given</p>
+
+
+
+
+
+<pre tabindex="0"><code>&gt;&gt;&gt; a
+tensor([0, 1, 2, 3])
+&gt;&gt;&gt; b = arange(5, 9)
+&gt;&gt;&gt; b
+tensor([5, 6, 7, 8])</code></pre>
+
+
+
+
+<pre tabindex="0"><code>&gt;&gt;&gt; a[:, None]
+tensor([[0],
+        [1],
+        [2],
+        [3]])</code></pre><p>and <code>b[None, :]</code>
+extends b into</p>
+
+
+
+
+
+<pre tabindex="0"><code>tensor([[5, 6, 7, 8]])</code></pre><p>the <code>@</code> operator multiple the row [5, 6, 7, 8] with each row of 1 element on the left
+thus generating a 4x4 array:</p>
+
+
+
+
+
+<pre tabindex="0"><code>tensor([[ 0,  0,  0,  0],
+        [ 5,  6,  7,  8],
+        [10, 12, 14, 16],
+        [15, 18, 21, 24]])</code></pre><h4 id="diag">diag</h4>
+<p>Solution: a[arange(a.shape[0]), arange(a.shape[0])]</p>
+<p>The tensor subscript operator can take a list of indexes as input (not just a[i], but a[(i,j,k)])</p>
+
+
+
+
+
+<pre tabindex="0"><code>tensor([[ 0,  0,  0,  0],
+        [ 5,  6,  7,  8],
+        [10, 12, 14, 16],
+        [15, 18, 21, 24]])
+&gt;&gt;&gt; g[(0, 1), (0, 0)]
+tensor([0, 5])</code></pre><p>We use that to index in a single expression, all the elements in the diagonal. arange(i), will generate 0, 1, 2..i. By subscripting arange(i) for both row and column indices, we can fetch all the elements in the diagonal a[(0, 1, 2, 3), (0, 1, 2, 3)]</p>
+<h4 id="eye">eye</h4>
+<p>The Identity matrix</p>
+<p>Solution: <code>where(arange(j)[:, None] == arange(j), 1, 0)</code></p>
+
+
+
+
+
+<pre tabindex="0"><code>&gt;&gt;&gt; tensor([0]) == tensor([1, 2, 3])
+tensor([False, False, False])</code></pre><p>The comparison is done for each element in the tensor
+<code>arange(5)[:, None]</code> turns our vector into a column vector <code>tensor([[0], [1], [2], [3]])</code>. By comparing the <code>tensor([0, 1, 2, 3])</code> with each row in the column vector, only the indexes where the elements are equal will be set to True. We then pass this matrix of Booleans to <code>where</code> where the element is set to 1 if True, thus turning it into anidentity matrix</p>
+<h4 id="triu">triu</h4>
+<p>Solution: <code>where(arange(j)[:, None] &lt;= arange(j), 1, 0)</code></p>
+<p>We use the same trick as in <code>eye</code> except we change the comparison from <code>==</code> <code>&lt;=</code> , so that all elements in row &lt;= row index will be True (thus 1)
+The results will be</p>
+
+
+
+
+
+<pre tabindex="0"><code>[0] &lt; = tensor([0, 1, 2, 3])`  =&gt; [True, False, False, False]
+[1] &lt; = tensor([0, 1, 2, 3])`  =&gt; [True, True, False, False]
+[2] &lt; = tensor([0, 1, 2, 3])`  =&gt; [True, True, True, False]</code></pre><h4 id="cumsum">cumsum</h4>
+<p>a[i] = sum(a[0..i])</p>
 ]]></content:encoded>
     </item>
     <item>

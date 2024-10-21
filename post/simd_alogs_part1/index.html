@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="http://localhost:1313/favicons" />
+<title>SIMD algos: Part 1 | Gowind&#39;s site</title>
+<meta name="title" content="SIMD algos: Part 1" />
+<meta name="description" content="I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware." />
+<meta name="keywords" content="" />
+
+
+
+
+
+
+  
+  <meta property="og:title" content="SIMD algos: Part 1" />
+<meta property="og:description" content="I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/post/simd_alogs_part1/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2024-10-21T00:00:00+00:00" />
+<meta property="article:modified_time" content="2024-10-21T00:00:00+00:00" /><meta property="og:site_name" content="Gowind&#39;s site" />
+
+
+
+  
+  <meta name="twitter:card" content="summary"/><meta name="twitter:title" content="SIMD algos: Part 1"/>
+<meta name="twitter:description" content="I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware."/>
+<meta name="twitter:site" content="@DeepknowledgeU"/>
+
+
+  
+  <meta itemprop="name" content="SIMD algos: Part 1">
+<meta itemprop="description" content="I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware."><meta itemprop="datePublished" content="2024-10-21T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2024-10-21T00:00:00+00:00" />
+<meta itemprop="wordCount" content="2017">
+<meta itemprop="keywords" content="" />
+
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  
+  <link href="/original.min.css" rel="stylesheet">
+
+  
+    
+    <link href="/syntax.min.css" rel="stylesheet">
+  
+
+  
+
+  
+</head>
+
+<body>
+  <header><a class="skip-link" href="#main-content">Skip to main content</a>
+
+<a href="/" class="title"><h1>Gowind&#39;s site</h1></a>
+<nav>
+  <a href="/post/">Posts</a>
+
+  <a href="/">About</a>
+
+<a href='http://localhost:1313/index.xml'>RSS</a>
+
+
+
+
+
+
+
+</nav>
+</header>
+  <main id="main-content">
+
+<h1>SIMD algos: Part 1</h1>
+<p class="byline">
+  <time datetime='2024-10-21' pubdate>
+    2024-10-21
+  </time>
+  
+</p>
+
+<content>
+  <p>I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware. In this post, In this series, I will explore a small piece of a library that exploits SIMD hardware in commodity processors on laptops and desktops to accelerate base64 encoding and decoding, <a href="https://github.com/lemire/fastbase64">fastbase64</a> courtesy <a href="https://lemire.me/blog/">Prof Lemire</a>, who has worked on many libraries to accelerate common text processing tasks , such as parsing <a href="https://github.com/simdjson/simdjson">JSON</a> and <a href="https://github.com/simdutf/simdutf">UTF</a> parsing</p>
+<h1 id="a-brief-introduction-to-simd">A Brief introduction to SIMD</h1>
+<p>SIMD stands for : Single Instruction Multiple Data.</p>
+<p>Essentially it is a special set of hardware execution units and registers on processors that can perform the same operation on multiple units of data at the same time.</p>
+<h4 id="without-simd">Without SIMD</h4>
+<p>Take for example a simple loop to element-wise sum 2 arrays</p>
+
+
+
+
+
+<pre tabindex="0"><code>
+for(int i=0; i &lt; n; i++) {
+   dest[i] = a[i] + b[i]
+}</code></pre><p>The processor would execute addition element by element , something like the loop below</p>
+
+
+
+
+
+<pre tabindex="0"><code>`; Assuming: 
+; rdi = pointer to dest array 
+; rsi = pointer to a array 
+; rdx = pointer to b array 
+; rcx = n (number of elements)     
+xor r8, r8          ; Initialize loop counter (i) to 0 
+.loop:     
+	cmp r8, rcx         ; Compare i with n    
+	jge .done           ; If i &gt;= n, exit loop     
+	mov eax, [rsi + r8*4] ; Load a[i] into eax    
+	add eax, [rdx + r8*4] ; Add b[i] to eax    
+	mov [rdi + r8*4], eax ; Store result in dest[i]     
+	inc r8              ; Increment loop counter    
+	jmp .loop           ; Continue loop .done:     
+; Loop finished`</code></pre><p>The compiler is smart enough to unroll the loop at times, so that it runs faster but we are still adding only one index (a[i] + b[i]) at a time.</p>
+<h4 id="with-simd">With SIMD</h4>
+<p>The processor provides special SIMD registers. The registers are (atleast today) 128, 256, 512 bits or more wide. The registers are split into <strong>lanes</strong> that can be 8, 16, 32 or 64 bits wide. We provide one instruction that operates on all of the lanes at once.</p>
+<p>In the following example, we are splitting 128 bit register into 4 lanes, 32-bits each and then element wise adding them.</p>
+<p>{{ $image := .Resources.Get &ldquo;simd_image.png&rdquo; }}</p>
+<p>Elementwise addition is not the only operation supported, other ops like multiplication , sub, trig fns are also supported depending on the processor.</p>
+<p>In this series, I will restrict myself to x86-64 processors (both Intel and AMD) supporting the AVX2 instruction set.</p>
+<p>x86 has multiple versions of SIMD instructions and registers. The oldest is MMX, followed by SSE, then AVX/AVX2 and AVX-512 and family of instructions.
+MMX had 64-bit wide registers and supported only integer operations, while SSE added 128-bit registers and supported floating point arithmetic. AVX increased the register sizes to 256 bits and AVX-512 expanded the register size to 512 bits. Each generation added newer instructions to manipulate the registers. The <a href="https://en.wikipedia.org/wiki/Advanced_Vector_Extensions">Wikipedia</a> article is a good summary of the various instruction sets and capabilities.</p>
+<h3 id="how-does-simd-work-">How does SIMD work ?</h3>
+<p>SIMD instructions make use of SIMD registers that are 128,256 or 512 bits. The instruction set provides various instructions to manipulate the registers. AVX2 for example provides 16 256 bit registers, named ymm0-ymm15.
+Each instruction works on one or more register and produces a result.
+To use these instructions, we could use inline asm in our code to emit the assembly instructions directly, or we could enable optimisation flags in our compiler (-O2, -O3 etc) and pray that the compiler is smart enough to generate the optimisations to use these instructions.</p>
+<p>There is also a 3rd option: using <a href="https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/intrinsics-for-avx2.html">intrinsics</a>. These are architecture specific datatypes and header files that provide functions and datatypes to manipulate the SIMD registers by using using SIMD instructions.</p>
+<p>On x86-64 Linux, the header file <code>#include &lt;immintrin.h&gt;</code> (or <code>&lt;x86intrin.h&gt;</code>) provides the <code>_mm256i</code> datatype that represents a 256-bit register. The header file also provides a <code>_m256i_add_epi32</code> fn  that (among many others) takes 2 <code>_mm256i</code> arguments, each having 8 lanes of 32-bit signed integers and adds them lane wise. You can visualise this as the diagram above having 8 instead of 4 lanes in each register and then pairwise adding them.</p>
+<p>A second arithmetic function provided by the intrinsics library is <code>__m256i _mm256_mulhi_epi16(__m256i s1, __m256i s2);</code> This fn splits each register as 16 16-bit values and then element-wise multiplies them. Since multiplying 2 16-bit values can produce upto a 32-bit value, the <code>mulhi</code> part of the instruction instructs the CPU to only store the high 16 bits of each result, while discarding the lower 16-bits.</p>
+
+
+
+
+
+<pre tabindex="0"><code>ymm0 = {0x00 0x48 0x40 0x0f 0x00 0x64 0x40 0x06 0x00 0x70 0x00 0x0c 0x00 0x74 0x00 0x05 0x00 0x60 0x40 0x0c 0x00 0x6c 0x40 0x00 0x00 0x64 0x40 0x04 0x00 0x6c 0x40 0x00}
+    
+
+ymm7 = {0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04}
+    
+
+The register values are stored in little endian, so 0x00 0x48 is 0x4800. 0x40 0x00 is 0x0040. The 2 multiplied, first 2 bytes are 0x12 00, which are set
+    
+7. output = ymm2 = {0x12 0x00 0x3d 0x00 0x19 0x00 0x19 0x00 0x1c 0x00 0x30 0x00 0x1d 0x00 0x14 0x00 0x18 0x00 0x31 0x00 0x1b 0x00 0x01 0x00 0x19 0x00 0x11 0x00 0x1b 0x00 0x01 0x00} = t1</code></pre><p>Arithmetic is not the only type of instruction. There are other bit manipulation instructions that will come to use later, that are supported. One of the instructions is the <code>shuffle</code> instruction (vpshub). This instruction is represented by the <code>__m256i _mm256_shuffle_epi8(__m256i a, __m256i b)</code> intrinsic.</p>
+<p>Shuffle instruction shuffles or reorders the elements in a source register (a) based on a <code>mask</code> register (b).if the results are written to register r and assuming b[i] =j, then r[i] = a[j] (value at index j of a is written to index i of output, hence the name <strong>shuffle</strong>)</p>
+
+
+
+
+
+<pre tabindex="0"><code>Lookup Table: {0x00 0x00 0x00 0x00 0x48 0x6f 0x77 0x65 0x76 0x65 0x72 0x2c 0x20 0x77 0x65 0x20 0x61 0x6c 0x73 0x6f 0x20 0x6f 0x66 0x74 0x65 0x6e 0x20 0x75 0x73 0x65 0x20 0x74}
+    
+mask = {0x05 0x04 0x06 0x05 0x08 0x07 0x09 0x08 0x0b 0x0a 0x0c 0x0b 0x0e 0x0d 0x0f 0x0e 0x01 0x00 0x02 0x01 0x04 0x03 0x05 0x04 0x07 0x06 0x08 0x07 0x0a 0x09 0x0b 0x0a}
+
+output = {0x6f 0x48 0x77 0x6f 0x76 0x65 0x65 0x76 0x2c 0x72 0x20 0x2c 0x65 0x77 0x20 0x65 0x6c 0x61 0x73 0x6c 0x20 0x6f 0x6f 0x20 0x74 0x66 0x65 0x74 0x20 0x6e 0x75 0x20}
+
+Note that mask[0] = 0x5, hence output[0] = Lookup Table[0x5]</code></pre><p>The Shuffle instruction is very useful as a lookup table. You can fill the <code>mask</code> registers with indexes that you want to lookup and <code>a</code> be the lookup table. Assuming 256-bits or 512-bit registers and 1 byte indexes, you can have a 32 / 64 entry table WITHOUT HAVING TO TOUCH THE MEMORY OR THE CACHE AT ALL !</p>
+<p>The last instruction I want to talk about is the Masked Load instruction. Lets deconstruct the words a bit:</p>
+<ol>
+<li>load - load data from memory</li>
+<li>masked - provide a <code>mask</code> to control the loading. But how ?</li>
+</ol>
+
+
+
+
+
+<pre tabindex="0"><code>int main() {
+  char* s = &#34;Mr batman, Mr batman, jungle man, spiderman&#34;;
+  printf(&#34;%s\n&#34;, s - 12);
+}</code></pre><p>The access to address <code>s-12</code> is might be invalid (as we didn&rsquo;t allocate the memory to any variable). The program might raise a segfault and get terminated due to illegal memory access.</p>
+<p>Another case that comes up is loading the last few bytes of an array whose size is not a multiple of 8, 16, or 32.</p>
+<p>Eg, lets try to sum up 2 arrays of  38 integers each.</p>
+
+
+
+
+
+<pre tabindex="0"><code>#include &lt;x86intrin.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stdint.h&gt;
+void print_mm256i(__m256i var) {
+  uint32_t val[8];
+  _mm256_storeu_si256((__m256i*)val, var);
+  printf(&#34;__m256i: [&#34;);
+  for(int i = 0 ; i &lt; 8; i++) {
+    printf(&#34;0x%08X&#34;, val[i]);
+    if(i &lt; 8) printf(&#34;, &#34;);
+  }
+  printf(&#34;]\n&#34;);
+}
+
+int main() {
+  int a[38] = {[0 ... 37] = 17};
+  int b[38] = {[0 ... 37] = 19};
+ for(int i =0; i &lt; 38;i += 8) {
+    __m256i inputa = _mm256_loadu_si256(a + i);
+    __m256i inputb = _mm256_loadu_si256(b + i );
+    __m256i result = _mm256_add_epi32(inputa, inputb);
+   print_mm256i(result);
+  }
+  return 0;
+}</code></pre><p>There is one small problem in the code: In the last run of the loop, We are accessing indexes beyond <code>a + N</code>  (idx 38 and 39) which might result in a segfault. Even if we don&rsquo;t get segfaults, the result of adding the values of a[39] and b[39] might be total garbage</p>
+
+
+
+
+
+<pre tabindex="0"><code> __m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+    
+ __m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+    
+__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+    
+__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+    
+__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x79758C30, 0xBE4B62BA, ]
+
+Array values in hexadecimal. Notice that the last 2 values are garbage whereas all the other values are the result of adding 17 + 19 = 36 (0x24)</code></pre><p>There are 2 options:</p>
+<ol>
+<li>Have a separate loop for loading the last few elements of the array that are not divisible by 8 (that is, set <code>i&lt; 32</code> and load elements 32&hellip;37 in a separate loop)</li>
+<li>Use a <code>masked load</code></li>
+</ol>
+<p>A Masked load takes a <code>mask</code> vector alongside the pointer to load data from. The mask is a vector/array of 1/0 values that control if element at that index from the source pointer must be loaded
+For example,
+if mask = [1, 1, 1, 0, 0, 0, 0, 0]
+then <code>res = masked_load(a, mask)</code> will only load <code>a[0], a[1] and a[2]</code>. <code>res[3..7]</code> will be set to 0 and any segfault that occur due to accessing <code>a[3..7]</code> will be suppressed</p>
+
+
+
+
+
+<pre tabindex="0"><code>void add_with_masking(int* a, int* b, int N) {
+ for(int i =0; i &lt; N;i += 8) {
+     int elements_to_load = ((i + 8) &lt; N) ? 8: N % 8;
+     __m256i mask_for_loading = generate_load_mask(elements_to_load);
+    __m256i inputa = _mm256_maskload_epi32(a + i, mask_for_loading);
+     __m256i inputb = _mm256_maskload_epi32(b + i, mask_for_loading);
+    __m256i result = _mm256_add_epi32(inputa, inputb);
+    printf(&#34;\nresult&#34;);
+    print_mm256i(result);
+  }
+}
+
+Output:
+result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+
+result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+
+result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+
+result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]
+
+result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000000, 0x00000000, ]
+
+Notice that the last 2 indexes have 0 as the resultant value since we do not load their corresponding source operands from a and b</code></pre><p>When loading elements from a and b, we generate a mask vector where for all indexes &lt; N  mask[index] = 0x8000 or 0 otherwise. This way, we can ignore index &gt; N without raising any segfaults. The fn <code>generate_load_mask(n)</code> generates a <code>mask</code> vector of 8 32-bit elements, again using SIMD instructions</p>
+
+
+
+
+
+<pre tabindex="0"><code> __m256i generate_load_mask(int n) {
+    __m256i index = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
+    __m256i n_vector = _mm256_set1_epi32(n);
+    __m256i mask = _mm256_cmpgt_epi32(n_vector, index);
+    __m256i result = _mm256_and_si256(mask, _mm256_set1_epi32(0x80000000));
+    return result;
+}</code></pre><p>On an input of <code>n=6</code>, we first set <code>index</code> = [0, 1, 2, 3, 4, 5, 6, 7].
+<code>n_vector</code> repeats n 8 times: [n, n, n, n, n, n, n, n];
+<code>_mm256_cmpgt_epi32</code> compares each element in <code>n_vector</code> with <code>index</code> and set each lane to 1 if n &gt; index  or 0 otherwise
+The mask is thus <code>[1, 1, 1, 1, 1, 1, 0, 0]</code>. <code>_mm256_and_si256</code> does a logical <code>AND</code> of 2 vectors: the <code>mask</code> vector and a vector of constant <code>0x80000000</code>, thus resulting in a vector
+<code>[0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0, 0]</code></p>
+<p>Thus in the last loop, loading from <code>i=32..40</code> we can thus mask out the loads to <code>a[38, 39</code> and <code>b[38, 39]</code> by using masked loads !</p>
+<p>I hope I didn&rsquo;t complicate this too much! SIMD might look hard, but the fundamentals of it are relatively simple. This article covered the basic instructions and features of SIMD architectures/instruction sets. In the upcoming series of articles, we can see how we can use SIMD to accelerate a lot of commonly done computing tasks: Such as encoding/decoding and counting elements in a set !</p>
+
+</content>
+<p>
+  
+</p>
+
+  <p>
+    <a href='mailto:mailto:petrovgovind@gmail.com?subject=Reply%20to%20"SIMD%20algos%3a%20Part%201"'>
+      Reply to this post by email ↪
+    </a>
+  </p>
+
+
+  </main>
+  <footer><small>
+   | 
+</small></footer>
+
+    
+</body>
+
+</html>

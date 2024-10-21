@@ -3,7 +3,10 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://gowind.github.io/post/</loc>
-    <lastmod>2024-08-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-10-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://gowind.github.io/post/simd_algos_part1/</loc>
+    <lastmod>2024-10-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://gowind.github.io/post/mom_where_is_my_library/</loc>
     <lastmod>2024-08-02T00:00:00+00:00</lastmod>

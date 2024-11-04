@@ -1,6 +1,6 @@
 ---
 title: Transforming async await - III, Stepping the Generator
-date: Feb 18, 2024
+date: 2024-02-18
 ---
 
 This is a continuation of a three part series: [Part I](async_await_transforms_part1.html), [Part II](async_await_transforms_part2.html)

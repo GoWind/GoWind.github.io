@@ -3,17 +3,16 @@ title: Transforming async await - I
 date: 2024-02-18
 ---
 
-This is the first of the three part series: [Part II](/post/async_await_transforms_part2), [Part III](/post/async_await_transforms_part3)
+This is the first article of a three part series: [Part II](/post/async_await_transforms_part2), [Part III](/post/async_await_transforms_part3)
 
 
-When compiling some Typescript code in JS for a backend service at work, I had set the `target` to `es5` and I saw that the emitted code did not have any `async/await` statements.
-`async/await` was not introduced in JS until ES2017, but clearly we are able to transpile code with `async/await` into `es5` or `es2015` JS. 
+When compiling some Typescript code into JS for a backend service at work, I had set the `target` to `es5` and I saw that the emitted code did not have any `async/await` statements. `async/await` syntax was not introduced in JS until ES2017, but clearly we are able to transpile code with `async/await` into `es5` or `es2015` JS. 
 
 So how does `async/await` work ? Lets transpile this to `ES2015` JS and see for ourselves.
 
 (I could have also chosen `ES5`, but `ES5` does not have native support for Promises and implementing Promises on ES5 would have become even more complicated, so I am sticking to ES2015 (or ES6) which has native Promises, so we only have to figure out how to implement async/await )
 
-This is our code with `async/await`
+Here is a snippet using `async/await`
 
 ```js
 async function getTextOrBust() {
@@ -31,13 +30,13 @@ async function getTextOrBust() {
 })();
 ```
 
-`getTextOrBust` makes a https call to "google.com" and if the response is HTTP 200, returns the body (as text) of the response. Both `fetch` and `.text()` methods return a Promise, so to use them as norma values, we need to prefix them with an `await` expression. 
+`getTextOrBust` makes a https call to "google.com" and if the response is HTTP 200, returns the body (as text) of the response. Both `fetch` and `.text()` methods return a Promise, so to use them as normal values, we need to prefix them with an `await` keyword. 
 
-`await` expressions are not allowed, unless they are inside functions marked `async`, so our `getTextOrBust` becomes an `async` function. 
+`await` expressions are not allowed in the code, unless they are inside functions marked `async`, so our `getTextOrBust` becomes an `async` function. 
 
-Since top-level `await`s weren't added until ES2022, I am simulating a top-level await by creating an IIFE (immediately invoked function expression, to run the async function in the module till completion)
+Since async functions cannot be used at the top level (`node x.js`), as top-level `await`s weren't added until ES2022, I am simulating a top-level await by creating an IIFE (immediately invoked function expression, to run the async function in the module till completion)
 
-The [Typescript Playground](https://www.typescriptlang.org/play?target=2&ssl=20&ssc=6&pln=1&pc=1#code/IYZwngdgxgBAZgV2gFwJYHsIwOYFNkCCAcggLYBGuATgBQCUMA3gFAwxX4JVYAsA3MwC+zEaEixEKDFjzIAKrgAeyAPJUAQghDJ6TVjCiZt7XCAAOMALwxgAd2Cpk8fFAAWNAESvkyMyABcAPSB2Ojo2AA2uAB0hqQedAJsqHA0HObR6ADWDCxsbIYQxuToACZgbNZ2Dk7pZtHISjqJ+mwcyFxYJeVJMIIwuBEguHr5MMiuVOi2MACiVFO0HgDCwBAQ6E5wLq44YdgJvcLCIjRi0DC6lgB8ozBRTllWNvaOOPgKymqa2jQ8LQUjOgotEIuEaDkBII6PQ+EA) gave me output code like this 
+The [Typescript Playground](https://www.typescriptlang.org/play?target=2&ssl=20&ssc=6&pln=1&pc=1#code/IYZwngdgxgBAZgV2gFwJYHsIwOYFNkCCAcggLYBGuATgBQCUMA3gFAwxX4JVYAsA3MwC+zEaEixEKDFjzIAKrgAeyAPJUAQghDJ6TVjCiZt7XCAAOMALwxgAd2Cpk8fFAAWNAESvkyMyABcAPSB2Ojo2AA2uAB0hqQedAJsqHA0HObR6ADWDCxsbIYQxuToACZgbNZ2Dk7pZtHISjqJ+mwcyFxYJeVJMIIwuBEguHr5MMiuVOi2MACiVFO0HgDCwBAQ6E5wLq44YdgJvcLCIjRi0DC6lgB8ozBRTllWNvaOOPgKymqa2jQ8LQUjOgotEIuEaDkBII6PQ+EA) generated the following es6 JS for the snippet:
 
 ```js
 "use strict";
@@ -93,7 +92,7 @@ function getTextOrBust() {
 }))();
 ```
 
-I re-wrote this snippet a little bit to make it easier to understand 
+I re-wrote the generated JS snippet a little bit to make it easier to understand 
 
 ```js
 "use strict";
@@ -141,7 +140,7 @@ function getTextOrBust() {
 
 #### async function x  becomes __awaiter(thisArg, ..., function*())
 
-The first thing is to notice how our 
+Notice how our fn `getTextOrBust` lost the `async` prefix: 
 
 ```js
 async function getTextOrBust() {
@@ -155,7 +154,7 @@ async function getTextOrBust() {
 }
 ```
 
-became 
+and became 
 
 ```js
 function getTextOrBust() {
@@ -174,7 +173,7 @@ function getTextOrBust() {
 
 we removed the `async` keyword and wrapped the body of our function in an `return __awaiter(this, void 0, void 0, function* ()` and replaced `await` with `yield`
 
-What is `yield` ? and what is this `function*`, `void 0`, ?
+### But, What is `yield` ? and what are `function*`, `void 0`, ?
 
 In JS, `void expr` evaluates `expr` and returns `undefined` as the value of the expression, so `let x = void 10`, evaluates `10` and returns `undefined` as the value of `x`
 

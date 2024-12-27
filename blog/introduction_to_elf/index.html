@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/introduction_to_elf/"><!-- Primary Meta Tags --><title>Introduction to ELF</title><meta name="title" content="Introduction to ELF"><meta name="description" content="What are ELF binaries"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/introduction_to_elf/"><meta property="og:title" content="Introduction to ELF"><meta property="og:description" content="What are ELF binaries"><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/introduction_to_elf/"><meta property="twitter:title" content="Introduction to ELF"><meta property="twitter:description" content="What are ELF binaries"><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo> <img width="1020" height="510" src="/blog-placeholder-5.jpg" alt="" data-astro-cid-bvzihdzo> </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2022-10-01T00:00:00.000Z"> Oct 1, 2022 </time>  </div> <h1 data-astro-cid-bvzihdzo>Introduction to ELF</h1> <hr data-astro-cid-bvzihdzo> </div>  <p>The best introduction is the actual ELF description document : <a href="http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf">http://flint.cs.yale.edu/cs422/doc/ELF_Format.pdf</a>
+However, it is kinda hard to read from from scratch and definitely boring.
+Not to worry ! I will doing most of the hardwork and spitting out useful information step by step as we go along.</p>
+<h3 id="what-is-an-elf">What is an ELF ?</h3>
+<p>ELF - Executable and Linkable Format. As the name says: an ELF defines files that are either linked together into an Executable or an Executable that can be run by the operating system (via a system call such as  <code>execve</code> )</p>
+<p>ELF files fall into one of 3 types</p>
+<ol>
+<li>Relocatable file - A file that is linked with other files to form an executable</li>
+<li>Executable file - A file that can be run by the operating system</li>
+<li>Shared Object file - A file that is loaded into a process at runtime (after an OS loads the executable). Shared object files provide common functionality (like <code>printf</code>) that need not be copied into every single executable.</li>
+</ol>
+<p>Since an ELF can be either linked into other files or run, it contains information about linking and loading/Executing the file.This information is provided via 2 parts of the ELF - <code>Program headers</code> and <code>Sections</code></p>
+<p>All ELFs contain an ELF Header that provides information the ELF : Is it an executable , a relocatable file, or a shared object file ? What architecture is this executable for ? What is the address from which this executable must be run  ?</p>
+<p>If the ELF is an executable , the <strong>Program Headers</strong> tell the Operating system what <code>virtual</code> address the program’s code and data should be loaded into  and what additional memory addresses has to be allocated to the program etc.</p>
+<p>In case of dynamically linked executables (more on that later), it also points to the location of the interpreter that must “interpret” this executable , so that it can be run.</p>
+<p>Lets look at a sample ELF header.
+In order to simplify things, I am going to use a statically compiled binary using <code>Zig</code>. I will explain what I mean when I say <code>statically</code> compiled.</p>
+<p>Lets take a small program that basically does nothing.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>fn factorial(x: u32) u32 {</span></span>
+<span class="line"><span>    if (x &#x3C;= 1) return 1;</span></span>
+<span class="line"><span>    var i: u32 = 1;</span></span>
+<span class="line"><span>    var res: u32 = 1;</span></span>
+<span class="line"><span>    while (i &#x3C;= x) : (i += 1) {</span></span>
+<span class="line"><span>        res *= i;</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    return res;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>pub fn main() void {</span></span>
+<span class="line"><span>    _ = factorial(4);</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>This program computes a factorial (but doesn’t print it). I left out printing the result, as it would have resulted in bloating our executable and making it too hard to understand how an ELF works.</p>
+<p>Build an executable out of this using:
+<code> zig build-exe -O ReleaseSmall -fsingle-threaded zig_factorial.zig</code>
+This should net us an executable named <code>zig_factorial</code>.
+For now , ignore the <code>ReleaseSmall</code> and <code>single-threaded</code> flags to the compiler. This is just to make our binary small enough and readable for learning purposes.</p>
+<h4 id="tool-1-readelf-is-your-best-friend">Tool 1: readelf is your best friend</h4>
+<p><code>readelf</code> as the name suggests, reads ELFs and prints out useful information for us.
+Let us look at the ELF header.</p>
+<p><code>readelf -h zig_factorial</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ELF Header:</span></span>
+<span class="line"><span>  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 </span></span>
+<span class="line"><span>  Class:                             ELF64</span></span>
+<span class="line"><span>  Data:                              2's complement, little endian</span></span>
+<span class="line"><span>  Version:                           1 (current)</span></span>
+<span class="line"><span>  OS/ABI:                            UNIX - System V</span></span>
+<span class="line"><span>  ABI Version:                       0</span></span>
+<span class="line"><span>  Type:                              EXEC (Executable file)</span></span>
+<span class="line"><span>  Machine:                           Advanced Micro Devices X86-64</span></span>
+<span class="line"><span>  Version:                           0x1</span></span>
+<span class="line"><span>  Entry point address:               0x205e60</span></span>
+<span class="line"><span>  Start of program headers:          64 (bytes into file)</span></span>
+<span class="line"><span>  Start of section headers:          581424 (bytes into file)</span></span>
+<span class="line"><span>  Flags:                             0x0</span></span>
+<span class="line"><span>  Size of this header:               64 (bytes)</span></span>
+<span class="line"><span>  Size of program headers:           56 (bytes)</span></span>
+<span class="line"><span>  Number of program headers:         8</span></span>
+<span class="line"><span>  Size of section headers:           64 (bytes)</span></span>
+<span class="line"><span>  Number of section headers:         19</span></span>
+<span class="line"><span>  Section header string table index: 17</span></span></code></pre>
+<p>You will find a lot of interesting info: 1. this is a 64 bit executable (Class : ELF64), built for the x86-64 architecture running System V (Linux and UNIX like OS) and the address from which we must start executing code is <code>0x205e60</code></p>
+<p>Lets run <code>ldd</code> on this exectuable:</p>
+<p><code>$ ldd zig_factorial</code>
+<code>           not a dynamic executable</code></p>
+<p><code>ldd</code> tells us that this .exe file does not depend on any other libraries on the operating system. Hence it is <code>static</code>.</p>
+<p>Lets look at the elf using another tool <code>nm</code>
+<code>nm zig_factorial</code></p>
+<p>It should produce a large output like this</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>0000000000204e20 t std.debug.assert</span></span>
+<span class="line"><span>0000000000226330 t std.debug.attachSegfaultHandler</span></span>
+<span class="line"><span>000000000020e4d0 t std.debug.chopSlice</span></span>
+<span class="line"><span>000000000021c6d0 t std.debug.Config.setColor</span></span>
+<span class="line"><span>000000000020a9c0 t std.debug.DebugInfo.getModuleForAddress</span></span>
+<span class="line"><span>000000000020a460 t std.debug.DebugInfo.init</span></span>
+<span class="line"><span>000000000020b070 t std.debug.DebugInfo.lookupModuleDl</span></span>
+<span class="line"><span>0000000000207940 t std.debug.detectTTYConfig</span></span>
+<span class="line"><span>0000000000206770 t std.debug.dumpCurrentStackTrace</span></span>
+<span class="line"><span>00000000002064e0 t std.debug.dumpStackTrace</span></span>
+<span class="line"><span>0000000000233c50 t std.debug.dumpStackTraceFromBase</span></span>
+<span class="line"><span>0000000000207880 t std.debug.getDebugInfoAllocator</span></span>
+<span class="line"><span>0000000000207730 t std.debug.getSelfDebugInfo</span></span>
+<span class="line"><span>000000000021d0b0 t std.debug.getSymbolFromDwarf</span></span>
+<span class="line"><span>000000000022ca60 t std.debug.handleSegfaultPosix</span></span>
+<span class="line"><span>0000000000225880 t std.debug.LineInfo.deinit</span></span>
+<span class="line"><span>000000000020e200 t std.debug.mapWholeFile</span></span></code></pre>
+<p>We aren’t interested in any of these symbols except what lies at address <code>0x205e60</code> , as this is our entry point into the executable, so let us grep for that.
+<code>$ nm zig_factorial | grep 0x205e60</code></p>
+<p><code>0000000000205e60 T _start</code></p>
+<p>Curiourser and curiouser. In our program , we defined a <code>main</code> function and assumed that that is what gets executed when we run our program. What then is <code>_start</code> ?</p>
+<p>When you execute your program, there has to be a lot of things that have to be done before <code>main</code> is called. Some of the tasks are like ensuring that the <code>argc</code> and <code>argv</code> parameters to the function are passed in the right registers, any state needed by the program before main is executed is updated . These might vary from platform to platform and runtime to runtime (zig, c, c++, insert prog. lang. of your choice).</p>
+<p>The convention therefore is to point the entry point of the executable to <code>_start</code> which does the initialization and calls <code>main</code>. Similarly, once your program exists , either by returning from main or calling some sort of <code>exit</code> function, an optional <code>exit</code>  like section runs, cleaning up resources before the program actually exits.</p>
+<p>(Self note: Glic binaries have no <code>exit</code> sections defined)</p>
+<p>Infact, the ELF defines 2 special sections<code>.init</code> and <code>.fini</code> to hold code for these entry and cleanup routines. We will discuss this in detail later.</p>
+<p>In case of our zig based program, the <code>zig</code> compiler (more specifically: the <code>musl</code> C library) provides all the necessary startup/cleanup code and compiles this into our executable, which then calls our <code>main</code> .</p>
+<h2 id="static-vs-dynamically-linked-executables">Static vs dynamically linked Executables</h2>
+<p><code>Static</code>:  Executable contains a copy of all the code it needs to interact with the Operating system and other systems
+<code>Dynamic</code>: Executable tells what code it needs, but doesn’t have it bundled in the same file. Instead it is the duty of the <code>dynamic linker</code>, to load this exe and link the code that executable needs before the executable actually starts executing the code.</p>
+<h5 id="why-are-executables-dynamic">Why are executables dynamic ?</h5>
+<ol>
+<li>A lot of code (such as <code>printf</code>) are commonly used by most programs. When programs are executed, they are loaded into memory  first so that they can be run.  In the old days, when memory was scarce, each executable loading code for the same function <code>printf</code>, <code>read</code>, <code>write</code> etc. meant wasting memory due to duplication</li>
+<li>Thanks to virtual memory, the memory addresses that processes see is not the same as the actual addreses in RAM. This meant that you can load <code>printf</code> in one RAM location and share it with many different processes , with a different virtual address in each process, thus reducing memory usage.</li>
+<li><code>glibc</code> or the C standard library is probably the most commonly used layer to interact with Linux. Therefore by shipping one instance of glibc with all Linux based OS, applications need not worry about the API to Linus and can rely on glibc to provide the functionality.</li>
+</ol>
+<p>The <code>dynamic linker</code> is a program that links your executable to <code>glibc</code> before the executable is run. All dynamically linked executables have an <code>INTERP</code> section (more on sections later), that points to the location of the <code>dynamic linker</code>.</p>
+<p>When you do something like <code>./my-executable</code> in your shell, your shell invokes <code>execve(./executable)</code>.
+<code>execve</code> is a family of Linux system calls that create a Process and to run your executables. When they see that your executable is a <code>dynamic</code> one, they invoke the <code>dynamic linker</code> present in the <code>INTERP</code> section of your executable, which then links your executable to <code>glibc</code> before running it.</p>
+<h5 id="problems">Problems</h5>
+<ol>
+<li>Like any dependency versioning is a problem. Your user’s OS might have a different version of Glibc that might not have the features your application needs , thus breaking the experience for the user.</li>
+<li>Platform inconsistencies: Dynamically linked executables hardcode the path to the <code>dynamic linker</code>. If you run your executable on an OS or a Linux installation with the dynamic linker at a different location, then your application will not be run (however, this can be solved by setting the <code>LD_LIBRARY_PATH</code> environment variable in the shell if the <code>dynamic linker</code> is present in a differnt location)</li>
+</ol>
+<h5 id="why-are-executables-static">Why are executables static ?</h5>
+<ol>
+<li>All code/data needed in one single file. No need to worry about dependencies.</li>
+</ol>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

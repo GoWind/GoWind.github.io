@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/got_stubs_and_linking/"><!-- Primary Meta Tags --><title>GOT, `__stubs` and Linking</title><meta name="title" content="GOT, `__stubs` and Linking"><meta name="description" content="GOT tables and Linking object files in C"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/got_stubs_and_linking/"><meta property="og:title" content="GOT, `__stubs` and Linking"><meta property="og:description" content="GOT tables and Linking object files in C"><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/got_stubs_and_linking/"><meta property="twitter:title" content="GOT, `__stubs` and Linking"><meta property="twitter:description" content="GOT tables and Linking object files in C"><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo>  </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2023-01-15T00:00:00.000Z"> Jan 15, 2023 </time>  </div> <h1 data-astro-cid-bvzihdzo>GOT, `__stubs` and Linking</h1> <hr data-astro-cid-bvzihdzo> </div>  <h4 id="this-is-a-version-of-the-procedure-link-tables-article-i-wrote-for-x86_64-but-for-macos-and-aarch64">This is a version of the Procedure Link Tables article I wrote for x86_64, but for macOS and aarch64.</h4>
+<p>Lets start with a simple program</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>#include&#x3C;stdio.h></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>int moorthySir(int k) {</span></span>
+<span class="line"><span>  return k - 1;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span>int blarty = 46;</span></span>
+<span class="line"><span>extern int malarchy(int);</span></span>
+<span class="line"><span>extern int martyMcBoe;</span></span>
+<span class="line"><span>int main() {</span></span>
+<span class="line"><span>  int a = martyMcBoe;</span></span>
+<span class="line"><span>  a += blarty;</span></span>
+<span class="line"><span>  printf("%d\n", a);</span></span>
+<span class="line"><span>  int mal = malarchy(683);</span></span>
+<span class="line"><span>  printf("%d\n", mal);</span></span>
+<span class="line"><span>  printf("%d\n", moorthySir(346));</span></span>
+<span class="line"><span>  return 0;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>We have a small helper <code>shared</code> library</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>int martyMcBoe = 895;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>int malarchy(int b) {</span></span>
+<span class="line"><span>  return b * 4;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span></code></pre>
+<p><code>gcc -c -fpic helper.c</code>
+<code>gcc -shared -o libhelper.so helper.o</code></p>
+<p>Our <code>main</code> depends on functionality from <code>libhelper.so</code> (a global variable and a function). What problems are we solving when linking them together ?</p>
+<ol>
+<li>main.c might be compiled with other <code>.o</code> (object files) to create the final executable. If we rely on an hardcoded address for <code>blarty</code>, when we create the final executables, this address will be invalid. This is because other <code>.o</code> or libraries will also have statically initialized data and in the final executable, we will have only one <code>.data</code> section that concatenates all the <code>.data</code> sections of the object files.</li>
+<li>We declare that we depend or need a global variable <code>martyMcBoe</code> and a fn <code>malarychy</code> (and <code>printf</code>). We don’t know which other object file or shared library will provide it, just that we need an <code>int</code> martyMcBoe and a <code>int -> int fn</code> named <code>malarchy</code>.</li>
+</ol>
+<p>So how do we figure out the right addresses to load our global variables from, or the right addresses to jump to ?
+Enter <code>relocations</code>.</p>
+<p>Now let us look at relocations in the file.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>objdump --reloc  main.o</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>main.o:	file format mach-o arm64</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>RELOCATION RECORDS FOR [__text]:</span></span>
+<span class="line"><span>OFFSET           TYPE                     VALUE</span></span>
+<span class="line"><span>00000000000000b8 ARM64_RELOC_BRANCH26     _printf</span></span>
+<span class="line"><span>00000000000000a0 ARM64_RELOC_BRANCH26     _moorthySir</span></span>
+<span class="line"><span>0000000000000098 ARM64_RELOC_BRANCH26     _printf</span></span>
+<span class="line"><span>0000000000000078 ARM64_RELOC_BRANCH26     _malarchy</span></span>
+<span class="line"><span>0000000000000070 ARM64_RELOC_BRANCH26     _printf</span></span>
+<span class="line"><span>0000000000000068 ARM64_RELOC_PAGEOFF12    l_.str</span></span>
+<span class="line"><span>0000000000000064 ARM64_RELOC_PAGE21       l_.str</span></span>
+<span class="line"><span>0000000000000044 ARM64_RELOC_PAGEOFF12    _blarty</span></span>
+<span class="line"><span>0000000000000040 ARM64_RELOC_PAGE21       _blarty</span></span>
+<span class="line"><span>0000000000000034 ARM64_RELOC_GOT_LOAD_PAGEOFF12 _martyMcBoe</span></span>
+<span class="line"><span>0000000000000030 ARM64_RELOC_GOT_LOAD_PAGE21 _martyMcBoe</span></span></code></pre>
+<p>The <code>offset</code> of a relocation depends on what kind of file we are looking at. In an object file, the <code>offset</code> is an offset into the <code>_text</code> section of the file and indicates what must be changed.
+For example <code>ARM64_RELOC_BRANCH26</code> _printf indicates that at an offset 70 into the file, we should do a relocation so that the code there can call the fn printf.</p>
+<p>We can see that at 70 offset into <code>_text</code>, there is indeed a <code>bl</code> instructions there (similar to call/jmp in x86)</p>
+<p>[Side Note] Relocations in macOS for global variables is a little tricky, which is why you will see 2 relocations for each global variable, such as <code>_martyMcBoe</code> (in macOS, all names of C fns or variables is prefixed with an `_)</p>
+<p>There is also another problem with aarch64. All instructions (including operands) in aarch64 are 32 bits wide. How do you then jump to another 64-bit address ?</p>
+<p>This is how the linker does this on aarch64:</p>
+<ol>
+<li>Provide a 26-bit (+/- 128 MB) offset relative to the current instruction pointer (PC) as arg. to the <code>bl</code> instruction.</li>
+<li>control jumps to that addres. There, we load the actual address of <code>printf</code> from a special location.</li>
+<li>Once the actual address of <code>printf</code> is in a register, we then use the <code>br</code> instruction to jump to the 64-bit address in the register</li>
+</ol>
+<p>Lets now compile our object file into an executable with the shared library
+<code>gcc -L. -g -o test main.c -lhelper</code></p>
+<p><code>test</code> is the name of our executable. We can verify that all the relocations we needed are patched</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>100003f88: 08 00 00 94 	bl	0x100003fa8 &#x3C;_printf+0x100003fa8></span></span>
+<span class="line"><span>100003f8c: e0 13 40 b9 	ldr	w0, [sp, #16]</span></span>
+<span class="line"><span>100003f90: fd 7b 42 a9 	ldp	x29, x30, [sp, #32]</span></span>
+<span class="line"><span>100003f94: ff c3 00 91 	add	sp, sp, #48</span></span>
+<span class="line"><span>100003f98: c0 03 5f d6 	ret</span></span></code></pre>
+<p>Our executable first <code>trampolines</code> into a <code>__stubs</code> section. From there it knows how to call into <code>printf</code></p>
+<ol>
+<li>Jump into the the trampoline in <code>__stubs</code>.</li>
+<li>Load the address of <code>printf</code> from the <code>GOT</code> (Global Offset Table) into <code>x16</code>.</li>
+<li>Jump to <code>printf</code>.</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>Disassembly of section __TEXT,__stubs:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>0000000100003f9c &#x3C;__stubs>:</span></span>
+<span class="line"><span>100003f9c: 10 00 00 b0 	adrp	x16, 0x100004000 &#x3C;__stubs+0x4></span></span>
+<span class="line"><span>100003fa0: 10 02 40 f9 	ldr	x16, [x16]</span></span>
+<span class="line"><span>100003fa4: 00 02 1f d6 	br	x16</span></span>
+<span class="line"><span>100003fa8: 10 00 00 b0 	adrp	x16, 0x100004000 &#x3C;__stubs+0x10></span></span>
+<span class="line"><span>100003fac: 10 0a 40 f9 	ldr	x16, [x16, #16]</span></span>
+<span class="line"><span>100003fb0: 00 02 1f d6 	br	x16</span></span></code></pre>
+<p>We can verify that the <code>GOT</code> is at the address <code>0x100004000</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>objdump -s -j __got test</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>test:	file format mach-o arm64</span></span>
+<span class="line"><span>Contents of section __DATA_CONST,__got:</span></span>
+<span class="line"><span> 100004000 00000000 00001080 01000000 00001080  ................</span></span>
+<span class="line"><span> 100004010 02000000 00000080                    ........</span></span></code></pre>
+<p>The dynamic linker knows which shared libraries (like <code>libc</code> ) our executable needs and loads the shared libraries into memory and maps the address of fns we need into the GOT.</p>
+<p>Running this program in the debugger, we see that from <code>__stubs</code> , we can jump into <code>printf</code> without knowing the exact address of <code>printf</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>test`printf:</span></span>
+<span class="line"><span>->  0x100003fb0 &#x3C;+8>: br     x16</span></span>
+<span class="line"><span>    0x100003fb4:      .long  0x000a6425                ; unknown opcode</span></span>
+<span class="line"><span>    0x100003fb8:      udf    #0x1</span></span>
+<span class="line"><span>    0x100003fbc:      udf    #0x1c</span></span>
+<span class="line"><span>Target 0: (test) stopped.</span></span>
+<span class="line"><span>(lldb) register read x16</span></span>
+<span class="line"><span>     x16 = 0x000000018c7351d0  libsystem_c.dylib`printf</span></span>
+<span class="line"><span>(lldb) disassemble</span></span>
+<span class="line"><span>test`printf:</span></span>
+<span class="line"><span>    0x100003fa8 &#x3C;+0>: adrp   x16, 1</span></span>
+<span class="line"><span>    0x100003fac &#x3C;+4>: ldr    x16, [x16, #0x10]</span></span>
+<span class="line"><span>->  0x100003fb0 &#x3C;+8>: br     x16</span></span>
+<span class="line"><span>(lldb) image lookup -n printf</span></span>
+<span class="line"><span>1 match found in /usr/lib/system/libsystem_c.dylib:</span></span>
+<span class="line"><span>        Address: libsystem_c.dylib[0x00000001802bd1d0] (libsystem_c.dylib.__TEXT.__text + 192556)</span></span>
+<span class="line"><span>        Summary: libsystem_c.dylib`printf</span></span></code></pre>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/mom_where_is_my_library/"><!-- Primary Meta Tags --><title>Mom, where is my library ?</title><meta name="title" content="Mom, where is my library ?"><meta name="description" content="How the Dynamic loader finds shared libraries"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/mom_where_is_my_library/"><meta property="og:title" content="Mom, where is my library ?"><meta property="og:description" content="How the Dynamic loader finds shared libraries"><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/mom_where_is_my_library/"><meta property="twitter:title" content="Mom, where is my library ?"><meta property="twitter:description" content="How the Dynamic loader finds shared libraries"><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo> <img width="1020" height="510" src="/blog-placeholder-5.jpg" alt="" data-astro-cid-bvzihdzo> </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2024-08-02T00:00:00.000Z"> Aug 2, 2024 </time>  </div> <h1 data-astro-cid-bvzihdzo>Mom, where is my library ?</h1> <hr data-astro-cid-bvzihdzo> </div>  <p>So I wanted to use the <a href="https://github.com/ggerganov/ggml">ggml</a> library to build some neural networks in C. The recipe was simple</p>
+<ol>
+<li>Clone the ggml repo into <code>~/personal/ggml</code></li>
+<li>Build the shared libraries needed to use ggml from my code</li>
+<li>Use the shared libraries</li>
+</ol>
+<p>To build the shared library, I created a <code>ggml_lib</code> folder adjacent to the <code>ggml</code> library:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>.</span></span>
+<span class="line"><span>├── ggml</span></span>
+<span class="line"><span>├── ggml_lib</span></span></code></pre>
+<p>Then, <code>cd ggml_lib</code>
+Followed by:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>cmake ../ggml</span></span>
+<span class="line"><span>cmake --build .</span></span>
+<span class="line"><span>cmake --install . --prefix $(PWD)</span></span></code></pre>
+<p>This installs the generated shared library under <code>ggml_lib/lib</code> and the headers under <code>ggml_lib/include</code></p>
+<p>So these are all we need to start using ggml, here is a simple main that attempts. to create a couple of tensors and then frees them</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>#include "ggml.h"</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>int main() {</span></span>
+<span class="line"><span>   struct ggml_init_params params  = {</span></span>
+<span class="line"><span>            .mem_size   = 2048,</span></span>
+<span class="line"><span>            .mem_buffer = NULL,</span></span>
+<span class="line"><span>            .no_alloc   = false, </span></span>
+<span class="line"><span>    };</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    // create context</span></span>
+<span class="line"><span>    struct ggml_context* ctx = ggml_init(params);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    struct ggml_tensor* a = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 5, 5);</span></span>
+<span class="line"><span>    struct ggml_tensor* b = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, 10, 10);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    ggml_free(ctx);</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ gcc use_ggml.c -o use_ggml</span></span>
+<span class="line"><span>use_ggml.c:1:10: fatal error: 'ggml.h' file not found</span></span>
+<span class="line"><span>#include "ggml.h"</span></span>
+<span class="line"><span>         ^~~~~~~~</span></span></code></pre>
+<p>Of course, your compiler cannot find the <code>ggml.h</code> Header file, so you have to specify a path to the compiler to search for this Header. We do this by passing the location to the Header file using the <code>-I</code> flag</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ gcc use_ggml.c -Iggml_lib/include -o use_ggml</span></span>
+<span class="line"><span>ld: Undefined symbols:</span></span>
+<span class="line"><span>  _ggml_free, referenced from:</span></span>
+<span class="line"><span>      _main in use_ggml-0e7b1c.o</span></span>
+<span class="line"><span>  _ggml_init, referenced from:</span></span>
+<span class="line"><span>      _main in use_ggml-0e7b1c.o</span></span>
+<span class="line"><span>  _ggml_new_tensor_2d, referenced from:</span></span>
+<span class="line"><span>      _main in use_ggml-0e7b1c.o</span></span>
+<span class="line"><span>      _main in use_ggml-0e7b1c.o</span></span>
+<span class="line"><span>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span></span></code></pre>
+<p>Now, your compiler can find the header file, but when attempt to create a final executable , it cannot find the code to the actual functions <code>ggml_init, ggml_free</code> (the <code>_</code> prefix is a macOS platform detail where the names of your functions are prefixed with an <code>_</code> ). So now we have to tell the compiler to link against our dynamic library : <code>ggml</code>, we do this by passing the <code>-lggml</code> flag (the convention is <code>-lname_of_the_library_providing_your_code</code>)</p>
+<p>So how can my compiler find where a library is located ? The compiler (and the linker) maintain a bunch of “SEARCH PATHS” where dynamic libraries are located and when attempting to link to a shared library, will attempt to find the library in the SEARCH PATHs before giving</p>
+<p>Here is what I found reported as SEARCH PATHS on my mac laptop</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ gcc --print-search-dirs</span></span>
+<span class="line"><span>programs: =/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin</span></span>
+<span class="line"><span>libraries: =/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>$ ld -v</span></span>
+<span class="line"><span>@(#)PROGRAM:ld  PROJECT:dyld-1015.7</span></span>
+<span class="line"><span>BUILD 18:48:48 Aug 22 2023</span></span>
+<span class="line"><span>....</span></span>
+<span class="line"><span>Library search paths:</span></span>
+<span class="line"><span>Framework search paths:</span></span></code></pre>
+<p>In addition, there are standard paths like <code>/usr/lib</code> or <code>/usr/local/lib</code> that your linker and compiler will search for to find shared libraries</p>
+<p>Coming back to our example, our installed shared library is not in any of these location, so I must specify the path to <code>ggml_lib/lib</code> to the compiler so that it can find the generated ggml dynamic lib (dylib)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>gcc use_ggml.c -Iinclude/ -Lggml_lib/lib -o use_ggml  -lggml</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>-lggml , link against the dynamic library ggml</span></span>
+<span class="line"><span>-Lggml_lib/lb, you will find the file libggml.dylib under ggml_lib/lib</span></span></code></pre>
+<h2 id="problem">Problem</h2>
+<p>Okay, it works. Now I just have to run my binary <code>use_ggml</code> right ? Right ?</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ ./use_ggml</span></span>
+<span class="line"><span>dyld[35649]: Library not loaded: @rpath/libggml.dylib</span></span>
+<span class="line"><span>  Referenced from: &#x3C;8B6DF1BE-A897-383F-AB20-DBDB61039351> /Users/govind/personal/use_ggml</span></span>
+<span class="line"><span>  Reason: no LC_RPATH's found</span></span>
+<span class="line"><span>[1]    35649 abort      ./use_ggml</span></span></code></pre>
+<p>What happened ? Didn’t we find our <code>ggml</code> dynamic library and set its location correctly when compiling the program ? Why is that when we run this code now, we run into some errors about the Library not being loaded ?</p>
+<h2 id="answer-the-dynamic-linker">Answer: The dynamic linker</h2>
+<p>Recall that a <a href="https://en.wikipedia.org/wiki/Shared_library">shared library</a> is a piece of executable code, that is shared across multiple binaries. This means that this piece of code can be loaded into other binaries. For example, if you want to use graphics, rather than create big binaries with all the graphics related operations, the OS will provide a shared library for graphics. As an executable, you need not bring your own Graphics related libraries, but just declare a dependency on the shared graphics library and it is the OS’s responsibility now to provide you the shared library when your binary is executed.</p>
+<p>Who is responsible for loading this shared library into your binary when it is run ? It is the <strong><a href="https://en.wikipedia.org/wiki/Dynamic_linker">DYNAMIC LINKER</a></strong> which loads and links the needed shared libraries at runtime.</p>
+<p>When you run a binary , example : <code>./use_ggml</code>, the dynamic linker <code>dyld</code> is executed by the operation system, which then reads “LOAD COMMANDS” from the executable to figure out how to setup the executable in memory, before the executable is actually executed (<code>main</code> of your program)</p>
+<p>On macOS binaries,  you can inspect your binary’s dependencies using the <code>otool</code> command</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>otool -l use_ggml</span></span>
+<span class="line"><span>Load command 13</span></span>
+<span class="line"><span>          cmd LC_LOAD_DYLIB</span></span>
+<span class="line"><span>      cmdsize 48</span></span>
+<span class="line"><span>         name @rpath/libggml.dylib (offset 24)</span></span>
+<span class="line"><span>   time stamp 2 Thu Jan  1 01:00:02 1970</span></span>
+<span class="line"><span>      current version 0.0.0</span></span>
+<span class="line"><span>compatibility version 0.0.0</span></span>
+<span class="line"><span>Load command 14</span></span>
+<span class="line"><span>          cmd LC_LOAD_DYLIB</span></span>
+<span class="line"><span>      cmdsize 56</span></span>
+<span class="line"><span>         name /usr/lib/libSystem.B.dylib (offset 24)</span></span>
+<span class="line"><span>   time stamp 2 Thu Jan  1 01:00:02 1970</span></span></code></pre>
+<p>the <code>LC_LOAD_DYLIB</code> is a command to the <code>dyld</code> to load a dynamic library. Note the <code>@rpath</code> macro.
+The <code>@rpath</code> is a macro that expands to <code>RUNTIME_PATH</code> , a path of locations at runtime (when the executable starts executing) where <code>dyld</code> will search for shared libraries.
+The <code>@rpath</code> isn’t a location in itself, but is set when the executable’s image is being created in the memory.</p>
+<p>The value of <code>@rpath</code> is set by an <code>LC_RPATH</code> command that sets the rpath to a particular location (thus providing the location to our dynlib as <code>/path/to/libggml.dylib</code>) , which in our case, is missing and thus causing <code>dyld</code> to throw an error when attempting to run our executable.</p>
+<h3 id="so-how-do-we-fix-this">So how do we fix this ?</h3>
+<p>There are a few solutions, each of which will helps us understand a bit further on how loading dynamic libraries work</p>
+<ol>
+<li>Using <code>DYLD_LIBRARY_PATH</code> (command: <code>DYLD_LIBRARY_PATH=. ./use_ggml</code>)</li>
+</ol>
+<p>The <code>DYLD_LIBRARY_PATH</code> is an environment variable that the dynamic linker parses before loading an executable. You can use DYLD_LIBRARY_PATH to provide a colon separated list of directories to search for shared libraries.</p>
+<p>Here is an example of using DYLD_LIBRARY_PATH to let dyld know where to look for libggml.dylib</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>~/personal/ggml-node</span></span>
+<span class="line"><span>$ DYLD_LIBRARY_PATH=./ggml_lib/lib ./use_ggml</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>~/personal/ggml-node</span></span></code></pre>
+<p>Success !!</p>
+<ol start="2">
+<li>Setting the <code>rpath</code> when creating the executable</li>
+</ol>
+<p>We pass flags to the linker when compiling our executable (as an aside, read Sanglard’s <a href="https://fabiensanglard.net/dc/index.php">brilliant</a> articles on how compiler drivers  function). We can expand the <code>rpath</code> macro to a location that is dependent on where the executable is located</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>gcc use_ggml.c -Iinclude/ -Lggml_lib/lib -o use_ggml  -lggml -Wl,-rpath,@executable_path/ggml_lib/lib</span></span></code></pre>
+<p><code>-Wl,option1,option2</code>  is how we pass flags to the linker via <code>gcc</code> compiler driver. The <code>@executable_path</code> is a placeholder to the location of the executable. What this says is: when looking for <code>libggml.dylib</code>, look it in the directory : <code>LOCATION_OF_EXECUTABLE/ggml_lib</code>. So if your executable is located at <code>/Users/personal</code> then look up <code>libggml.dylib</code> in <code>/Users/personal/ggml_lib</code>
+There are other placeholders such as <code>@loader_path</code> , but lets not look into them now to avoid confusion.</p>
+<p>Once we set the <code>rpath</code>, lets look at the LOAD_COMMANDS in the executable to see if anything has changed</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>otool -l use_ggml</span></span>
+<span class="line"><span>Load command 13</span></span>
+<span class="line"><span>          cmd LC_LOAD_DYLIB</span></span>
+<span class="line"><span>      cmdsize 48</span></span>
+<span class="line"><span>         name @rpath/libggml.dylib (offset 24)</span></span>
+<span class="line"><span>   time stamp 2 Thu Jan  1 01:00:02 1970</span></span>
+<span class="line"><span>      current version 0.0.0</span></span>
+<span class="line"><span>compatibility version 0.0.0</span></span>
+<span class="line"><span>Load command 14</span></span>
+<span class="line"><span>          cmd LC_LOAD_DYLIB</span></span>
+<span class="line"><span>      cmdsize 56</span></span>
+<span class="line"><span>         name /usr/lib/libSystem.B.dylib (offset 24)</span></span>
+<span class="line"><span>   time stamp 2 Thu Jan  1 01:00:02 1970</span></span>
+<span class="line"><span>      current version 1336.0.0</span></span>
+<span class="line"><span>compatibility version 1.0.0</span></span>
+<span class="line"><span>Load command 15</span></span>
+<span class="line"><span>          cmd LC_RPATH</span></span>
+<span class="line"><span>      cmdsize 48</span></span>
+<span class="line"><span>         path @executable_path/ggml_lib/lib (offset 12)</span></span></code></pre>
+<p>BINGO ! Remember the missing <code>LC_RPATH</code> command that was the cause of the dyld error ? We now have an LC_RPATH command that points to the directory <code>ggml_lib/lib</code> relative to the location of the executable.</p>
+<p>So, does this solve the problem ?</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ ./use_ggml</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>~/personal </span></span></code></pre>
+<p>YES ! A resounding YES !</p>
+<h2 id="summary">Summary</h2>
+<p>Turns out finding and loading shared libraries is a actually a tricky problem when shipping native applications. A lot of this complexity is thankfully handled by the OS and package managers, but it is good to understand the problems faced by native applications to truly appreciate all the QoL improvements that package managers make for us.</p>
+<h3 id="appendix">Appendix</h3>
+<p>The difference between @executable_path and @loader_path in RPATH (Run-time search PATH) variables is illustrated as follows</p>
+<ol>
+<li>@executable_path:
+<ul>
+<li>Definition: This variable refers to the directory containing the main executable of the process.</li>
+<li>Usage: It’s primarily used when you want to specify paths relative to the main application executable.</li>
+<li>Behavior: It always points to the same location, regardless of which library or plugin is currently being loaded.</li>
+</ul>
+</li>
+<li>@loader_path:
+<ul>
+<li>Definition: This variable refers to the directory containing the binary (executable or library) that is currently being loaded.</li>
+<li>Usage: It’s used when you want to specify paths relative to the current library or executable being loaded.</li>
+<li>Behavior: Its value can change depending on which binary is currently being processed by the dynamic loader.</li>
+</ul>
+</li>
+</ol>
+<p>@executable_path always refers to the main application executable’s directory.
+@loader_path refers to the directory of the binary currently being loaded, which could be the main executable, a library, or a plugin.</p>
+<p>Example Scenario:</p>
+<p>Imagine an application structure like this:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>/Applications/MyApp.app/</span></span>
+<span class="line"><span>    Contents/</span></span>
+<span class="line"><span>        MacOS/</span></span>
+<span class="line"><span>            MyApp (main executable)</span></span>
+<span class="line"><span>        Frameworks/</span></span>
+<span class="line"><span>            LibA.dylib</span></span>
+<span class="line"><span>            LibB.dylib</span></span>
+<span class="line"><span>        PlugIns/</span></span>
+<span class="line"><span>            PluginC.dylib</span></span></code></pre>
+<ul>
+<li>Using @executable_path:
+<ul>
+<li>In MyApp: @executable_path/../Frameworks/LibA.dylib</li>
+<li>This always refers to /Applications/MyApp.app/Contents/MacOS/</li>
+</ul>
+</li>
+<li>Using @loader_path:
+<ul>
+<li>In MyApp: @loader_path/../Frameworks/LibA.dylib (Same as @executable_path in this case)</li>
+<li>In LibA.dylib: @loader_path/LibB.dylib (Refers to /Applications/MyApp.app/Contents/Frameworks/)</li>
+<li>In PluginC.dylib: @loader_path/../../Frameworks/LibA.dylib (Refers to /Applications/MyApp.app/Contents/PlugIns/)</li>
+</ul>
+</li>
+</ul>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

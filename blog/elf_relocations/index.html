@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/elf_relocations/"><!-- Primary Meta Tags --><title>ELF relocations</title><meta name="title" content="ELF relocations"><meta name="description" content><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/elf_relocations/"><meta property="og:title" content="ELF relocations"><meta property="og:description" content><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/elf_relocations/"><meta property="twitter:title" content="ELF relocations"><meta property="twitter:description" content><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo>  </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2022-11-10T00:00:00.000Z"> Nov 10, 2022 </time>  </div> <h1 data-astro-cid-bvzihdzo>ELF relocations</h1> <hr data-astro-cid-bvzihdzo> </div>  <p>Let us try to understand what are relocations and how they happen.</p>
+<p>When we compile our code , there will be certain “things” that we do not know where they exist. For example , in the following snippet, we do not know where <code>printf</code> is coming from, but we just assume that <code>printf</code> is defined somewhere and is available when we execute our code.</p>
+<p>Here is a C file with a <code>main</code> function:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>#include&#x3C;stdio.h></span></span>
+<span class="line"><span>//#include "lib.h"</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>int main(int argc, char** argv) {</span></span>
+<span class="line"><span>  printf("factorial of 5 is %d\n", factorial(5));</span></span>
+<span class="line"><span>  return 0;</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>I haven’t defined the <code>factorial</code> function yet as well, so if I try to compile it into an executable, it will fail:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>gcc main.c -o main                              </span></span>
+<span class="line"><span>main.c: In function ‘main’:</span></span>
+<span class="line"><span>main.c:5:36: warning: implicit declaration of function ‘factorial’ [-Wimplicit-function-declaration]</span></span>
+<span class="line"><span>    5 |   printf("factorial of 5 is %d\n", factorial(5));</span></span>
+<span class="line"><span>      |                                    ^~~~~~~~~</span></span>
+<span class="line"><span>/usr/bin/ld: /tmp/ccbCLA27.o: in function `main':</span></span>
+<span class="line"><span>main.c:(.text+0x1e): undefined reference to `factorial'</span></span>
+<span class="line"><span>collect2: error: ld returned 1 exit status</span></span></code></pre>
+<p><code>collect2</code> is the GNU <code>linker</code> that will link object files into an Executable</p>
+<p>We can compile our C file into a relocatable object file (<code>.o</code>).
+This relocatable can be linked with other libraries or relocatables into an EXE and contains <code>relocatable</code> sections (<code>.rela.</code>) that say which symbols should be relocated.</p>
+<p><code>gcc -c main.c</code></p>
+<p><code>readelf -h main.c</code>  gives the following output</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ELF Header:</span></span>
+<span class="line"><span>  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 </span></span>
+<span class="line"><span>  Class:                             ELF64</span></span>
+<span class="line"><span>  Data:                              2's complement, little endian</span></span>
+<span class="line"><span>  Version:                           1 (current)</span></span>
+<span class="line"><span>  OS/ABI:                            UNIX - System V</span></span>
+<span class="line"><span>  ABI Version:                       0</span></span>
+<span class="line"><span>  Type:                              REL (Relocatable file)</span></span>
+<span class="line"><span>  Machine:                           Advanced Micro Devices X86-64</span></span>
+<span class="line"><span>  Version:                           0x1</span></span>
+<span class="line"><span>  Entry point address:               0x0</span></span>
+<span class="line"><span>  Start of program headers:          0 (bytes into file)</span></span>
+<span class="line"><span>  Start of section headers:          888 (bytes into file)</span></span>
+<span class="line"><span>  Flags:                             0x0</span></span>
+<span class="line"><span>  Size of this header:               64 (bytes)</span></span>
+<span class="line"><span>  Size of program headers:           0 (bytes)</span></span>
+<span class="line"><span>  Number of program headers:         0</span></span>
+<span class="line"><span>  Size of section headers:           64 (bytes)</span></span>
+<span class="line"><span>  Number of section headers:         14</span></span>
+<span class="line"><span>  Section header string table index: 13</span></span></code></pre>
+<p>(Question to self: How does the linker know which section defines the <code>main</code> function, and set it as the starting point of the executable)</p>
+<p>Let us look at the symbols in our Relocatable file</p>
+<p><code>readelf --symbols main.o</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Symbol table '.symtab' contains 14 entries:</span></span>
+<span class="line"><span>   Num:    Value          Size Type    Bind   Vis      Ndx Name</span></span>
+<span class="line"><span>     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND </span></span>
+<span class="line"><span>     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS main.c</span></span>
+<span class="line"><span>     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1 </span></span>
+<span class="line"><span>     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 </span></span>
+<span class="line"><span>     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 </span></span>
+<span class="line"><span>     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5 </span></span>
+<span class="line"><span>     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    7 </span></span>
+<span class="line"><span>     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    8 </span></span>
+<span class="line"><span>     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    9 </span></span>
+<span class="line"><span>     9: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 </span></span>
+<span class="line"><span>    10: 0000000000000000    60 FUNC    GLOBAL DEFAULT    1 main</span></span>
+<span class="line"><span>    11: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _GLOBAL_OFFSET_TABLE_</span></span>
+<span class="line"><span>    12: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND factorial</span></span>
+<span class="line"><span>    13: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND printf</span></span></code></pre>
+<p>While we use <code>factorial</code>  and <code>printf</code> even though we haven’t defined (or declared) them, the symbol table in our <code>main.o</code>  contains entries for them.</p>
+<p><code>$ readelf --relocs main.o</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Relocation section '.rela.text' at offset 0x2a0 contains 3 entries:</span></span>
+<span class="line"><span>  Offset          Info           Type           Sym. Value    Sym. Name + Addend</span></span>
+<span class="line"><span>00000000001e  000c00000004 R_X86_64_PLT32    0000000000000000 factorial - 4</span></span>
+<span class="line"><span>000000000027  000500000002 R_X86_64_PC32     0000000000000000 .rodata - 4</span></span>
+<span class="line"><span>000000000031  000d00000004 R_X86_64_PLT32    0000000000000000 printf - 4</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Relocation section '.rela.eh_frame' at offset 0x2e8 contains 1 entry:</span></span>
+<span class="line"><span>  Offset          Info           Type           Sym. Value    Sym. Name + Addend</span></span>
+<span class="line"><span>000000000020  000200000002 R_X86_64_PC32     0000000000000000 .text + 0</span></span></code></pre>
+<p>Our relocations are of different types. We can be relocating calls to functions (R_X86_64_PLT32) or to data (R_X86_64_PC32).</p>
+<p>The <code>offset</code> of the relocation tells us where in our code the relocation exists. Let us take a look at it using <code>objdump</code></p>
+<p><code>objdump -s main.o</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>0000000000000000 &#x3C;main>:</span></span>
+<span class="line"><span>   0:   f3 0f 1e fa             endbr64 </span></span>
+<span class="line"><span>   4:   55                      push   %rbp</span></span>
+<span class="line"><span>   5:   48 89 e5                mov    %rsp,%rbp</span></span>
+<span class="line"><span>   8:   48 83 ec 10             sub    $0x10,%rsp</span></span>
+<span class="line"><span>   c:   89 7d fc                mov    %edi,-0x4(%rbp)</span></span>
+<span class="line"><span>   f:   48 89 75 f0             mov    %rsi,-0x10(%rbp)</span></span>
+<span class="line"><span>  13:   bf 05 00 00 00          mov    $0x5,%edi</span></span>
+<span class="line"><span>  18:   b8 00 00 00 00          mov    $0x0,%eax</span></span>
+<span class="line"><span>  1d:   e8 00 00 00 00          callq  22 &#x3C;main+0x22></span></span>
+<span class="line"><span>  22:   89 c6                   mov    %eax,%esi</span></span>
+<span class="line"><span>  24:   48 8d 3d 00 00 00 00    lea    0x0(%rip),%rdi        # 2b &#x3C;main+0x2b></span></span>
+<span class="line"><span>  2b:   b8 00 00 00 00          mov    $0x0,%eax</span></span>
+<span class="line"><span>  30:   e8 00 00 00 00          callq  35 &#x3C;main+0x35></span></span>
+<span class="line"><span>  35:   b8 00 00 00 00          mov    $0x0,%eax</span></span>
+<span class="line"><span>  3a:   c9                      leaveq </span></span>
+<span class="line"><span>  3b:   c3                      retq</span></span></code></pre>
+<p>Looks scary ! (but pretty understandable)</p>
+<p>The first relocation <code>001e</code>  points to a value of <code>00 00 00 00</code>. This comes after an <code>e8</code> value,  which is the opcode for a <code>callq</code> instruction. What is being called ? <code>00</code> ?</p>
+<p>In our source code, we call 2 functions: <code>printf</code> and <code>factorial</code>.
+`printf(“factorial of 5 is %d\n”, factorial(5));</p>
+<p>We call <code>factorial</code> with an argument of <code>5</code> and then <code>printf</code> with 2 arguments : a format string, and the result of the call of <code>factorial(5)</code>. The first <code>callq</code> is the <code>factorial(5)</code> and the second <code>callq</code> at offset <code>30</code> is to <code>printf</code>.</p>
+<p>We also see that we pass a <code>5</code> to <code>factorial()</code> by setting <code>edi</code> to <code>5</code>  (for more info on how parameters to functions are passed, read the [[From Source Code to Hello World/X86 calling convention]] page)</p>
+<p>We do not know the address where <code>printf</code> or <code>factorial</code> will be located in memory, so <code>gcc</code> simply sets the address of the <code>call</code> instruction to <code>00 00 00 00</code> and emits a <code>relocation</code> entry in the object file. This will tell the linker when it is generating the executable, to somehow generate an address to <code>factorial</code> or redirect the callq to a location, which then knows how to call <code>factorial</code>.
+(Note to self: is this the <code>PLT</code>, aka <code>Procedure Link Table</code>  ?)</p>
+<p>Lets implement factorial in a <code>lib.c</code> file and then link it with our executable.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ cat lib.c  </span></span>
+<span class="line"><span>int factorial(int base) {</span></span>
+<span class="line"><span>  int res = 1;</span></span>
+<span class="line"><span>  int i = 1;</span></span>
+<span class="line"><span>  if(base == 0) {</span></span>
+<span class="line"><span>    return 1;</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  while(i &#x3C;= base) {</span></span>
+<span class="line"><span>    res *= i;</span></span>
+<span class="line"><span>    i += 1;</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  return res;</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p><code>gcc lib.c main.c -o main</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>000000003db8  000000000008 R_X86_64_RELATIVE                    1140</span></span>
+<span class="line"><span>000000003dc0  000000000008 R_X86_64_RELATIVE                    1100</span></span>
+<span class="line"><span>000000004008  000000000008 R_X86_64_RELATIVE                    4008</span></span>
+<span class="line"><span>000000003fd8  000100000006 R_X86_64_GLOB_DAT 0000000000000000 _ITM_deregisterTMClone + 0</span></span>
+<span class="line"><span>000000003fe0  000300000006 R_X86_64_GLOB_DAT 0000000000000000 __libc_start_main@GLIBC_2.2.5 + 0</span></span>
+<span class="line"><span>000000003fe8  000400000006 R_X86_64_GLOB_DAT 0000000000000000 __gmon_start__ + 0</span></span>
+<span class="line"><span>000000003ff0  000500000006 R_X86_64_GLOB_DAT 0000000000000000 _ITM_registerTMCloneTa + 0</span></span>
+<span class="line"><span>000000003ff8  000600000006 R_X86_64_GLOB_DAT 0000000000000000 __cxa_finalize@GLIBC_2.2.5 + 0</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Relocation section '.rela.plt' at offset 0x5e8 contains 1 entry:</span></span>
+<span class="line"><span>  Offset          Info           Type           Sym. Value    Sym. Name + Addend</span></span>
+<span class="line"><span>000000003fd0  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0</span></span></code></pre>
+<p>As you can see, <code>factorial</code> is no longer a relocatable symbol as the compiler knows where to find it and then generates an address to jump to, when <code>factorial</code> is to be called.
+We can verify it in our <code>objdump</code> output.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>    119d:       bf 05 00 00 00          mov    $0x5,%edi</span></span>
+<span class="line"><span>    11a2:       b8 00 00 00 00          mov    $0x0,%eax</span></span>
+<span class="line"><span>    11a7:       e8 9d ff ff ff          callq  1149 &#x3C;factorial></span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>0000000000001149 &#x3C;factorial>:</span></span>
+<span class="line"><span>    1149:       f3 0f 1e fa             endbr64 </span></span>
+<span class="line"><span>    114d:       55                      push   %rbp</span></span>
+<span class="line"><span>    114e:       48 89 e5                mov    %rsp,%rbp</span></span></code></pre>
+<p>What about <code>printf</code> ? How do we call printf when we really don’t know its address ?
+That is the topic of the next section : <code>PLTs</code> ,a.ka Procedure Link Tables.</p>
+<h5 id="footnote">Footnote</h5>
+<p>Each relocation section denotes which section will be updated.
+For example: <code>.rela.text</code> means these relocations apply to the <code>.text</code> section.
+Similar <code>.rela.plt</code> means this relocation will apply to the <code>.plt</code> section.</p>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

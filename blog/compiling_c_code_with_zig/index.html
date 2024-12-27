@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/compiling_c_code_with_zig/"><!-- Primary Meta Tags --><title>Compiling C code with Zig</title><meta name="title" content="Compiling C code with Zig"><meta name="description" content="How to compile your C code with the Zig build system ?"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/compiling_c_code_with_zig/"><meta property="og:title" content="Compiling C code with Zig"><meta property="og:description" content="How to compile your C code with the Zig build system ?"><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/compiling_c_code_with_zig/"><meta property="twitter:title" content="Compiling C code with Zig"><meta property="twitter:description" content="How to compile your C code with the Zig build system ?"><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo>  </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2024-05-06T00:00:00.000Z"> May 6, 2024 </time>  </div> <h1 data-astro-cid-bvzihdzo>Compiling C code with Zig</h1> <hr data-astro-cid-bvzihdzo> </div>  <h3 id="this-doesnt-cover-cross-compiling-to-other-targets">This doesn’t cover cross-compiling to other targets.</h3>
+<p>We will only focus on creating libraries and executables on the same platform.</p>
+<p>This small intro covers creating</p>
+<ol>
+<li>A static library</li>
+<li>A shared (dynamic) library</li>
+<li>and an executable</li>
+</ol>
+<p>I wrote a build file in Zig to built the <code>whisper</code> executable in the <code>whisper.cpp</code> repo by Greg Gregarinov. This project is a good intro to compiling C/C++ code with Zig.
+<code>whisper.cpp</code> involves using</p>
+<ol>
+<li>ggml - A c library for tensor/matrix operations. This library consists of a <code>.c</code> file and a corresponding header file.</li>
+<li>whisper.cpp - A cpp library that can be used for audio transcription</li>
+<li>A main file from <code>main.cpp</code> and <code>common.cpp</code> that uses the previously built <code>whisper.cpp</code></li>
+</ol>
+<p><code>ggml</code> performs a lot of intensive math operations, so on each platform we will have to leverage the platform’s SIMD intrinsics or special Matrix libraries if available.</p>
+<p>The <code>builtin</code> package/library in Zig provides information about the system the program is running in via <a href="https://github.com/ziglang/zig/blob/8d6336420b937075e3363f9548adb0092af7f819/src/Compilation.zig#L5083">this</a> fn , which is called by <a href="https://github.com/ziglang/zig/blob/8d6336420b937075e3363f9548adb0092af7f819/src/Compilation.zig#L3500">this</a> in the <a href="https://github.com/ziglang/zig/blob/8d6336420b937075e3363f9548adb0092af7f819/src/Compilation.zig#L3008">main</a> thread, when we call zig build or <code>zig build-exe</code></p>
+<ol>
+<li>Based on the <code>cpu</code> of the platform (<code>builtin.cpu</code>) we decide the C and the C++ flags we need to pass to the compiler</li>
+<li>If an accelerator has to be used (Accelerate in macos or OpenBLAS) we also set the corresponding flags. The usage of these accelerators is controlled by passing an option to <code>zig build</code> using <code>zig build -Doption=val</code>. In our file, for example, setting <code>-Dmacos_accelerate=true</code> enables the usage of the AI accelerator in macos.</li>
+</ol>
+<p>We then build a bunch of intermediate object files that will be linked into the static, dynamic and main executables.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>    const ggmlObject = b.addObject(.{</span></span>
+<span class="line"><span>        .name = "ggml.o",</span></span>
+<span class="line"><span>        .target = target,</span></span>
+<span class="line"><span>        .optimize = optimize,</span></span>
+<span class="line"><span>    });</span></span>
+<span class="line"><span>    ggmlObject.addIncludePath("./"); </span></span>
+<span class="line"><span>ggmlObject.addIncludePath("/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");</span></span>
+<span class="line"><span>    ggmlObject.addCSourceFiles(&#x26;.{</span></span>
+<span class="line"><span>        "ggml.c",</span></span>
+<span class="line"><span>    }, c_flags.items);</span></span></code></pre>
+<p>This for example, builds the <code>ggml</code> object file from our ggml source code with the C flags we have defined.
+We then build a <code>whisper</code> object and then use them both in each of the shared library, static library and the executable.</p>
+<p>We can only install artifacts that are either a shared,static library or an executable file. We <strong>cannot <code>install</code> any intermediate object files that were created by Zig</strong></p>
+<p>To procedurally instruct Zig build to install these files, using <code>std.build.Builder.installArtifact</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>var lib_dynamic = b.addSharedLibrary(.{ .name = "whisper", .optimize = optimize, .target = target });</span></span>
+<span class="line"><span>    lib_dynamic.addObject(ggmlObject);</span></span>
+<span class="line"><span>    lib_dynamic.addObject(whisperObject);</span></span>
+<span class="line"><span>    b.installArtifact(lib_dynamic);</span></span>
+<span class="line"><span>    b.installArtifact(lib_static_library);</span></span>
+<span class="line"><span>    b.installArtifact(mainFile);</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>const std = @import("std");</span></span>
+<span class="line"><span>const builtin = @import("builtin");</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>pub fn build(b: *std.build.Builder) !void {</span></span>
+<span class="line"><span>    var basic_cflags = [_][]const u8{ "-I.", "-O3", "-std=c11", "-fPIC", "-pthread" };</span></span>
+<span class="line"><span>    var basic_cppflags = .{ "-I.", "-I./examples", "-O3", "-std=c++11", "-fPIC", "-pthread" };</span></span>
+<span class="line"><span>    var alloc = b.allocator;</span></span>
+<span class="line"><span>    var c_flags = std.ArrayList([]const u8).init(alloc);</span></span>
+<span class="line"><span>    var cpp_flags = std.ArrayList([]const u8).init(alloc);</span></span>
+<span class="line"><span>    defer c_flags.deinit();</span></span>
+<span class="line"><span>    defer cpp_flags.deinit();</span></span>
+<span class="line"><span>    try c_flags.appendSlice(&#x26;basic_cflags);</span></span>
+<span class="line"><span>    try cpp_flags.appendSlice(&#x26;basic_cppflags);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    const target = b.standardTargetOptions(.{});</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    var target_cpu = builtin.cpu;</span></span>
+<span class="line"><span>    var all_features = target_cpu.features;</span></span>
+<span class="line"><span>    if (target_cpu.arch.isX86()) {</span></span>
+<span class="line"><span>        const x86_target = std.Target.x86;</span></span>
+<span class="line"><span>        if (x86_target.featureSetHas(all_features, x86_target.Feature.f16c)) {</span></span>
+<span class="line"><span>            try c_flags.append("-mf16c");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        if (x86_target.featureSetHas(all_features, x86_target.Feature.fma)) {</span></span>
+<span class="line"><span>            try c_flags.append("-mfma");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        if (x86_target.featureSetHas(all_features, x86_target.Feature.avx)) {</span></span>
+<span class="line"><span>            try c_flags.append("-mavx");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        if (x86_target.featureSetHas(all_features, x86_target.Feature.avx2)) {</span></span>
+<span class="line"><span>            try c_flags.append("-mavx2");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        if (x86_target.featureSetHas(all_features, x86_target.Feature.sse3)) {</span></span>
+<span class="line"><span>            try c_flags.append("-msse3");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    if (target_cpu.arch.isPPC64()) {</span></span>
+<span class="line"><span>        const ppc64_target = std.Target.powerpc;</span></span>
+<span class="line"><span>        if (ppc64_target.featureSetHas(all_features, ppc64_target.Feature.power9_vector)) {</span></span>
+<span class="line"><span>            try c_flags.append("-mpower9-vector");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        try cpp_flags.append("-std=c++23");</span></span>
+<span class="line"><span>        try cpp_flags.append("-DGGML_BIG_ENDIAN");</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    var maybe_use_accelerate = b.option(bool, "macos_accelerate", "use the accelerate framework in macOS (if available) for ML models");</span></span>
+<span class="line"><span>    if (maybe_use_accelerate) |use_accelerate| {</span></span>
+<span class="line"><span>        if (use_accelerate) {</span></span>
+<span class="line"><span>            try c_flags.append("-DGGML_USE_ACCELERATE");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    var maybe_use_openblas = b.option(bool, "use_openblas", "use open BLAS when available");</span></span>
+<span class="line"><span>    if (maybe_use_openblas) |use_openblas| {</span></span>
+<span class="line"><span>        if (use_openblas) {</span></span>
+<span class="line"><span>            try c_flags.appendSlice(&#x26;.{ "-DGGML_USE_OPENBLAS", "-I/usr/local/include/openblas" });</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    var maybe_use_gprof = b.option(bool, "gprof", "use gnu prof");</span></span>
+<span class="line"><span>    if (maybe_use_gprof) |use_gprof| {</span></span>
+<span class="line"><span>        if (use_gprof) {</span></span>
+<span class="line"><span>            try c_flags.append("-pg");</span></span>
+<span class="line"><span>            try cpp_flags.append("-pg");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    if (!target_cpu.arch.isAARCH64()) {</span></span>
+<span class="line"><span>        try c_flags.append("-mcpu=native");</span></span>
+<span class="line"><span>        try cpp_flags.append("-mcpu=native");</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    if (target_cpu.arch.isARM()) {</span></span>
+<span class="line"><span>        if (!std.mem.startsWith(u8, target_cpu.model.name, "armv6")) {</span></span>
+<span class="line"><span>            try c_flags.appendSlice(&#x26;.{ "-mfpu=neon-fp-armv8", "-mfp16-format=ieee", "-mno-unaligned-access" });</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        if (!std.mem.startsWith(u8, target_cpu.model.name, "armv7")) {</span></span>
+<span class="line"><span>            try c_flags.appendSlice(&#x26;.{ "-mfpu=neon-fp-armv8", "-mfp16-format=ieee", "-mno-unaligned-access", "-funsafe-math-optimizations" });</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        if (!std.mem.startsWith(u8, target_cpu.model.name, "armv8")) {</span></span>
+<span class="line"><span>            try c_flags.appendSlice(&#x26;.{ "-mfp16-format=ieee", "-mno-unaligned-access" });</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    //TODO: Flags for accelerate, aarch64, arm and rpi</span></span>
+<span class="line"><span>    const optimize = b.standardOptimizeOption(.{});</span></span>
+<span class="line"><span>    const ggmlObject = b.addObject(.{</span></span>
+<span class="line"><span>        .name = "ggml.o",</span></span>
+<span class="line"><span>        .target = target,</span></span>
+<span class="line"><span>        .optimize = optimize,</span></span>
+<span class="line"><span>    });</span></span>
+<span class="line"><span>    ggmlObject.addIncludePath("./");</span></span>
+<span class="line"><span>    ggmlObject.addIncludePath("/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include");</span></span>
+<span class="line"><span>    ggmlObject.addCSourceFiles(&#x26;.{</span></span>
+<span class="line"><span>        "ggml.c",</span></span>
+<span class="line"><span>    }, c_flags.items);</span></span>
+<span class="line"><span>    if (maybe_use_accelerate) |use_accelerate| {</span></span>
+<span class="line"><span>        if (use_accelerate) {</span></span>
+<span class="line"><span>            ggmlObject.linkFramework("Accelerate");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    if (maybe_use_openblas) |open_blas| {</span></span>
+<span class="line"><span>        if (open_blas) {</span></span>
+<span class="line"><span>            ggmlObject.linkSystemLibraryName("openblas");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    ggmlObject.linkLibC();</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    const whisperObject = b.addObject(.{ .name = "whisper.o", .target = target, .optimize = optimize });</span></span>
+<span class="line"><span>    whisperObject.addIncludePath("./");</span></span>
+<span class="line"><span>    whisperObject.addIncludePath("./examples");</span></span>
+<span class="line"><span>    whisperObject.addCSourceFile("whisper.cpp", cpp_flags.items);</span></span>
+<span class="line"><span>    whisperObject.linkLibCpp();</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    // zig automatically adds `lib` prefix and a `.a` suffix</span></span>
+<span class="line"><span>    var lib_static_library = b.addStaticLibrary(.{ .name = "whisper", .optimize = optimize, .target = target });</span></span>
+<span class="line"><span>    lib_static_library.addObject(ggmlObject);</span></span>
+<span class="line"><span>    lib_static_library.addObject(whisperObject);</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    var lib_dynamic = b.addSharedLibrary(.{ .name = "whisper", .optimize = optimize, .target = target });</span></span>
+<span class="line"><span>    lib_dynamic.addObject(ggmlObject);</span></span>
+<span class="line"><span>    lib_dynamic.addObject(whisperObject);</span></span>
+<span class="line"><span>    b.installArtifact(lib_dynamic);</span></span>
+<span class="line"><span>    b.installArtifact(lib_static_library);</span></span>
+<span class="line"><span>    var mainFile = b.addExecutable(.{ .name = "main" });</span></span>
+<span class="line"><span>    mainFile.addIncludePath("./");</span></span>
+<span class="line"><span>    mainFile.addIncludePath("./examples");</span></span>
+<span class="line"><span>    mainFile.addCSourceFiles(&#x26;.{ "examples/main/main.cpp", "examples/common.cpp" }, cpp_flags.items);</span></span>
+<span class="line"><span>    mainFile.addObject(whisperObject);</span></span>
+<span class="line"><span>    mainFile.addObject(ggmlObject);</span></span>
+<span class="line"><span>    if (maybe_use_accelerate) |use_accelerate| {</span></span>
+<span class="line"><span>        if (use_accelerate) {</span></span>
+<span class="line"><span>            mainFile.linkFramework("Accelerate");</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    b.installArtifact(mainFile);</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="alternate-ways-of-setting-c-macros">Alternate ways of setting C macros</h3>
+<h5 id="in-zig-code">In Zig Code:</h5>
+<p>Setting C preprocess macros with @cDefine or <code>-Dmacro=value</code> during compile time.
+This compile time macro can be set via <code>build/build-exe -Dmacro=val</code> or programatically
+object.addCSourceFiles(“file”, c_cpp_flags);</p>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

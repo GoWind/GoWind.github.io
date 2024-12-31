@@ -1,0 +1,162 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.1.1"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/simd_algos_part1/"><!-- Primary Meta Tags --><title>SIMD algos: Part 1</title><meta name="title" content="SIMD algos: Part 1"><meta name="description" content><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/simd_algos_part1/"><meta property="og:title" content="SIMD algos: Part 1"><meta property="og:description" content><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/simd_algos_part1/"><meta property="twitter:title" content="SIMD algos: Part 1"><meta property="twitter:description" content><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media (max-width: 720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}.tag{display:inline-block;background-color:#f3f4f6;border-radius:.5rem;padding:.25rem .75rem;margin:0 .5rem .5rem 0;font-size:.875rem;font-weight:600;color:#4b5563}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2],h2[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:center;justify-content:space-between}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:var(--accent)}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media (max-width: 720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}footer[data-astro-cid-sz7xmlte]{padding:2em 1em 6em;background:linear-gradient(var(--gray-gradient)) no-repeat;color:rgb(var(--gray));text-align:center}.social-links[data-astro-cid-sz7xmlte]{display:flex;justify-content:center;gap:1em;margin-top:1em}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]{text-decoration:none;color:rgb(var(--gray))}.social-links[data-astro-cid-sz7xmlte] a[data-astro-cid-sz7xmlte]:hover{color:rgb(var(--gray-dark))}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+[data-astro-image]{width:100%;height:auto;object-fit:var(--fit);object-position:var(--pos);aspect-ratio:var(--w) / var(--h)}[data-astro-image=responsive]{max-width:calc(var(--w) * 1px);max-height:calc(var(--h) * 1px)}[data-astro-image=fixed]{width:calc(var(--w) * 1px);height:calc(var(--h) * 1px)}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <h2 data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>Govind&#39;s Blog</a></h2> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  <a href="/ideas" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Steal My Ideas </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="hero-image" data-astro-cid-bvzihdzo> <img width="1020" height="510" src="/blog-placeholder-5.jpg" alt="" data-astro-cid-bvzihdzo> </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2024-10-21T00:00:00.000Z"> Oct 21, 2024 </time>  </div> <h1 data-astro-cid-bvzihdzo>SIMD algos: Part 1</h1> <hr data-astro-cid-bvzihdzo> </div>  <p>I have been on a study of SIMD algorithms for the past few weeks, to understand how developers adapt and tweak serial algorithms to take advantage of SIMD hardware. In this post, In this series, I will explore a small piece of a library that exploits SIMD hardware in commodity processors on laptops and desktops to accelerate base64 encoding and decoding, <a href="https://github.com/lemire/fastbase64">fastbase64</a> courtesy <a href="https://lemire.me/blog/">Prof Lemire</a>, who has worked on many libraries to accelerate common text processing tasks , such as parsing <a href="https://github.com/simdjson/simdjson">JSON</a> and <a href="https://github.com/simdutf/simdutf">UTF</a> parsing</p>
+<h1 id="a-brief-introduction-to-simd">A Brief introduction to SIMD</h1>
+<p>SIMD stands for : Single Instruction Multiple Data.</p>
+<p>Essentially it is a special set of hardware execution units and registers on processors that can perform the same operation on multiple units of data at the same time.</p>
+<h4 id="without-simd">Without SIMD</h4>
+<p>Take for example a simple loop to element-wise sum 2 arrays</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>for(int i=0; i &#x3C; n; i++) {</span></span>
+<span class="line"><span>   dest[i] = a[i] + b[i]</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>The processor would execute addition element by element , something like the loop below</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>`; Assuming: </span></span>
+<span class="line"><span>; rdi = pointer to dest array </span></span>
+<span class="line"><span>; rsi = pointer to a array </span></span>
+<span class="line"><span>; rdx = pointer to b array </span></span>
+<span class="line"><span>; rcx = n (number of elements)     </span></span>
+<span class="line"><span>xor r8, r8          ; Initialize loop counter (i) to 0 </span></span>
+<span class="line"><span>.loop:     </span></span>
+<span class="line"><span>	cmp r8, rcx         ; Compare i with n    </span></span>
+<span class="line"><span>	jge .done           ; If i >= n, exit loop     </span></span>
+<span class="line"><span>	mov eax, [rsi + r8*4] ; Load a[i] into eax    </span></span>
+<span class="line"><span>	add eax, [rdx + r8*4] ; Add b[i] to eax    </span></span>
+<span class="line"><span>	mov [rdi + r8*4], eax ; Store result in dest[i]     </span></span>
+<span class="line"><span>	inc r8              ; Increment loop counter    </span></span>
+<span class="line"><span>	jmp .loop           ; Continue loop .done:     </span></span>
+<span class="line"><span>; Loop finished`</span></span></code></pre>
+<p>The compiler is smart enough to unroll the loop at times, so that it runs faster but we are still adding only one index (a[i] + b[i]) at a time.</p>
+<h4 id="with-simd">With SIMD</h4>
+<p>The processor provides special SIMD registers. The registers are (atleast today) 128, 256, 512 bits or more wide. The registers are split into <strong>lanes</strong> that can be 8, 16, 32 or 64 bits wide. We provide one instruction that operates on all of the lanes at once.</p>
+<p>In the following example, we are splitting 128 bit register into 4 lanes, 32-bits each and then element wise adding them.</p>
+<p><img src="/public/simd_image.png" alt="SIMD image"></p>
+<p>Elementwise addition is not the only operation supported, other ops like multiplication , sub, trig fns are also supported depending on the processor.</p>
+<p>In this series, I will restrict myself to x86-64 processors (both Intel and AMD) supporting the AVX2 instruction set.</p>
+<p>x86 has multiple versions of SIMD instructions and registers. The oldest is MMX, followed by SSE, then AVX/AVX2 and AVX-512 and family of instructions.
+MMX had 64-bit wide registers and supported only integer operations, while SSE added 128-bit registers and supported floating point arithmetic. AVX increased the register sizes to 256 bits and AVX-512 expanded the register size to 512 bits. Each generation added newer instructions to manipulate the registers. The <a href="https://en.wikipedia.org/wiki/Advanced_Vector_Extensions">Wikipedia</a> article is a good summary of the various instruction sets and capabilities.</p>
+<h3 id="how-to-use-simd">How to use SIMD ?</h3>
+<p>SIMD instructions make use of SIMD registers that are 128,256 or 512 bits. The instruction set provides various instructions to manipulate the registers. AVX2 for example provides 16 256 bit registers, named ymm0-ymm15.
+Each instruction works on one or more register and produces a result.
+To use these instructions, we could use inline asm in our code to emit the assembly instructions directly, or we could enable optimisation flags in our compiler (-O2, -O3 etc) and pray that the compiler is smart enough to generate the optimisations to use these instructions.</p>
+<p>There is also a 3rd option: using <a href="https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/intrinsics-for-avx2.html">intrinsics</a>. These are architecture specific datatypes and header files that provide functions and datatypes to manipulate the SIMD registers by using using SIMD instructions.</p>
+<p>On x86-64 Linux, the header file <code>#include &#x3C;immintrin.h></code> (or <code>&#x3C;x86intrin.h></code>) provides the <code>_mm256i</code> datatype that represents a 256-bit register. The header file also provides a <code>_m256i_add_epi32</code> fn  that (among many others) takes 2 <code>_mm256i</code> arguments, each having 8 lanes of 32-bit signed integers and adds them lane wise. You can visualise this as the diagram above having 8 instead of 4 lanes in each register and then pairwise adding them.</p>
+<p>A second arithmetic function provided by the intrinsics library is <code>__m256i _mm256_mulhi_epi16(__m256i s1, __m256i s2);</code> This fn splits each register as 16 16-bit values and then element-wise multiplies them. Since multiplying 2 16-bit values can produce upto a 32-bit value, the <code>mulhi</code> part of the instruction instructs the CPU to only store the high 16 bits of each result, while discarding the lower 16-bits.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ymm0 = {0x00 0x48 0x40 0x0f 0x00 0x64 0x40 0x06 0x00 0x70 0x00 0x0c 0x00 0x74 0x00 0x05 0x00 0x60 0x40 0x0c 0x00 0x6c 0x40 0x00 0x00 0x64 0x40 0x04 0x00 0x6c 0x40 0x00}</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ymm7 = {0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04 0x40 0x00 0x00 0x04}</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>The register values are stored in little endian, so 0x00 0x48 is 0x4800. 0x40 0x00 is 0x0040. The 2 multiplied, first 2 bytes are 0x12 00, which are set</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>7. output = ymm2 = {0x12 0x00 0x3d 0x00 0x19 0x00 0x19 0x00 0x1c 0x00 0x30 0x00 0x1d 0x00 0x14 0x00 0x18 0x00 0x31 0x00 0x1b 0x00 0x01 0x00 0x19 0x00 0x11 0x00 0x1b 0x00 0x01 0x00} = t1</span></span></code></pre>
+<p>Arithmetic is not the only type of instruction. There are other bit manipulation instructions that will come to use later, that are supported. One of the instructions is the <code>shuffle</code> instruction (vpshub). This instruction is represented by the <code>__m256i _mm256_shuffle_epi8(__m256i a, __m256i b)</code> intrinsic.</p>
+<p>Shuffle instruction shuffles or reorders the elements in a source register (a) based on a <code>mask</code> register (b).if the results are written to register r and assuming b[i] =j, then r[i] = a[j] (value at index j of a is written to index i of output, hence the name <strong>shuffle</strong>)</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Lookup Table: {0x00 0x00 0x00 0x00 0x48 0x6f 0x77 0x65 0x76 0x65 0x72 0x2c 0x20 0x77 0x65 0x20 0x61 0x6c 0x73 0x6f 0x20 0x6f 0x66 0x74 0x65 0x6e 0x20 0x75 0x73 0x65 0x20 0x74}</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>mask = {0x05 0x04 0x06 0x05 0x08 0x07 0x09 0x08 0x0b 0x0a 0x0c 0x0b 0x0e 0x0d 0x0f 0x0e 0x01 0x00 0x02 0x01 0x04 0x03 0x05 0x04 0x07 0x06 0x08 0x07 0x0a 0x09 0x0b 0x0a}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>output = {0x6f 0x48 0x77 0x6f 0x76 0x65 0x65 0x76 0x2c 0x72 0x20 0x2c 0x65 0x77 0x20 0x65 0x6c 0x61 0x73 0x6c 0x20 0x6f 0x6f 0x20 0x74 0x66 0x65 0x74 0x20 0x6e 0x75 0x20}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Note that mask[0] = 0x5, hence output[0] = Lookup Table[0x5]</span></span></code></pre>
+<p>The Shuffle instruction is very useful as a lookup table. You can fill the <code>mask</code> registers with indexes that you want to lookup and <code>a</code> be the lookup table. Assuming 256-bits or 512-bit registers and 1 byte indexes, you can have a 32 / 64 entry table WITHOUT HAVING TO TOUCH THE MEMORY OR THE CACHE AT ALL !</p>
+<p>The last instruction I want to talk about is the Masked Load instruction. Lets deconstruct the words a bit:</p>
+<ol>
+<li>load - load data from memory</li>
+<li>masked - provide a <code>mask</code> to control the loading. But how ?</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>int main() {</span></span>
+<span class="line"><span>  char* s = "Mr batman, Mr batman, jungle man, spiderman";</span></span>
+<span class="line"><span>  printf("%s\n", s - 12);</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>The access to address <code>s-12</code> is might be invalid (as we didn’t allocate the memory to any variable). The program might raise a segfault and get terminated due to illegal memory access.</p>
+<p>Another case that comes up is loading the last few bytes of an array whose size is not a multiple of 8, 16, or 32.</p>
+<p>Eg, lets try to sum up 2 arrays of  38 integers each.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>#include &#x3C;x86intrin.h></span></span>
+<span class="line"><span>#include &#x3C;stdbool.h></span></span>
+<span class="line"><span>#include &#x3C;stdint.h></span></span>
+<span class="line"><span>void print_mm256i(__m256i var) {</span></span>
+<span class="line"><span>  uint32_t val[8];</span></span>
+<span class="line"><span>  _mm256_storeu_si256((__m256i*)val, var);</span></span>
+<span class="line"><span>  printf("__m256i: [");</span></span>
+<span class="line"><span>  for(int i = 0 ; i &#x3C; 8; i++) {</span></span>
+<span class="line"><span>    printf("0x%08X", val[i]);</span></span>
+<span class="line"><span>    if(i &#x3C; 8) printf(", ");</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  printf("]\n");</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>int main() {</span></span>
+<span class="line"><span>  int a[38] = {[0 ... 37] = 17};</span></span>
+<span class="line"><span>  int b[38] = {[0 ... 37] = 19};</span></span>
+<span class="line"><span> for(int i =0; i &#x3C; 38;i += 8) {</span></span>
+<span class="line"><span>    __m256i inputa = _mm256_loadu_si256(a + i);</span></span>
+<span class="line"><span>    __m256i inputb = _mm256_loadu_si256(b + i );</span></span>
+<span class="line"><span>    __m256i result = _mm256_add_epi32(inputa, inputb);</span></span>
+<span class="line"><span>   print_mm256i(result);</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>  return 0;</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>There is one small problem in the code: In the last run of the loop, We are accessing indexes beyond <code>a + N</code>  (idx 38 and 39) which might result in a segfault. Even if we don’t get segfaults, the result of adding the values of a[39] and b[39] might be total garbage</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span> __m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span> __m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x79758C30, 0xBE4B62BA, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Array values in hexadecimal. Notice that the last 2 values are garbage whereas all the other values are the result of adding 17 + 19 = 36 (0x24)</span></span></code></pre>
+<p>There are 2 options:</p>
+<ol>
+<li>Have a separate loop for loading the last few elements of the array that are not divisible by 8 (that is, set <code>i&#x3C; 32</code> and load elements 32…37 in a separate loop)</li>
+<li>Use a <code>masked load</code></li>
+</ol>
+<p>A Masked load takes a <code>mask</code> vector alongside the pointer to load data from. The mask is a vector/array of 1/0 values that control if element at that index from the source pointer must be loaded
+For example,
+if mask = [1, 1, 1, 0, 0, 0, 0, 0]
+then <code>res = masked_load(a, mask)</code> will only load <code>a[0], a[1] and a[2]</code>. <code>res[3..7]</code> will be set to 0 and any segfault that occur due to accessing <code>a[3..7]</code> will be suppressed</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>void add_with_masking(int* a, int* b, int N) {</span></span>
+<span class="line"><span> for(int i =0; i &#x3C; N;i += 8) {</span></span>
+<span class="line"><span>     int elements_to_load = ((i + 8) &#x3C; N) ? 8: N % 8;</span></span>
+<span class="line"><span>     __m256i mask_for_loading = generate_load_mask(elements_to_load);</span></span>
+<span class="line"><span>    __m256i inputa = _mm256_maskload_epi32(a + i, mask_for_loading);</span></span>
+<span class="line"><span>     __m256i inputb = _mm256_maskload_epi32(b + i, mask_for_loading);</span></span>
+<span class="line"><span>    __m256i result = _mm256_add_epi32(inputa, inputb);</span></span>
+<span class="line"><span>    printf("\nresult");</span></span>
+<span class="line"><span>    print_mm256i(result);</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Output:</span></span>
+<span class="line"><span>result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>result__m256i: [0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000024, 0x00000000, 0x00000000, ]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Notice that the last 2 indexes have 0 as the resultant value since we do not load their corresponding source operands from a and b</span></span></code></pre>
+<p>When loading elements from a and b, we generate a mask vector where for all indexes &#x3C; N  mask[index] = 0x8000 or 0 otherwise. This way, we can ignore index > N without raising any segfaults. The fn <code>generate_load_mask(n)</code> generates a <code>mask</code> vector of 8 32-bit elements, again using SIMD instructions</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span> __m256i generate_load_mask(int n) {</span></span>
+<span class="line"><span>    __m256i index = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);</span></span>
+<span class="line"><span>    __m256i n_vector = _mm256_set1_epi32(n);</span></span>
+<span class="line"><span>    __m256i mask = _mm256_cmpgt_epi32(n_vector, index);</span></span>
+<span class="line"><span>    __m256i result = _mm256_and_si256(mask, _mm256_set1_epi32(0x80000000));</span></span>
+<span class="line"><span>    return result;</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>On an input of <code>n=6</code>, we first set <code>index</code> = [0, 1, 2, 3, 4, 5, 6, 7].
+<code>n_vector</code> repeats n 8 times: [n, n, n, n, n, n, n, n];
+<code>_mm256_cmpgt_epi32</code> compares each element in <code>n_vector</code> with <code>index</code> and set each lane to 1 if n > index  or 0 otherwise
+The mask is thus <code>[1, 1, 1, 1, 1, 1, 0, 0]</code>. <code>_mm256_and_si256</code> does a logical <code>AND</code> of 2 vectors: the <code>mask</code> vector and a vector of constant <code>0x80000000</code>, thus resulting in a vector
+<code>[0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0x80000000, 0, 0]</code></p>
+<p>Thus in the last loop, loading from <code>i=32..40</code> we can thus mask out the loads to <code>a[38, 39</code> and <code>b[38, 39]</code> by using masked loads !</p>
+<p>I hope I didn’t complicate this too much! SIMD might look hard, but the fundamentals of it are relatively simple. This article covered the basic instructions and features of SIMD architectures/instruction sets. In the upcoming series of articles, we can see how we can use SIMD to accelerate a lot of commonly done computing tasks: Such as encoding/decoding and counting elements in a set !</p>  </div> </article> </main> <footer data-astro-cid-sz7xmlte> <div class="social-links" data-astro-cid-sz7xmlte> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-sz7xmlte><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-sz7xmlte></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-sz7xmlte> <span class="sr-only" data-astro-cid-sz7xmlte>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-sz7xmlte><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-sz7xmlte></path></svg> </a> </div> </footer>  </body></html>

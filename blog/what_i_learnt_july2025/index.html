@@ -47,6 +47,19 @@ volumes - managed by docker and mounted in containers. persist after containers 
 bind mounts - mount a dir in the host into a container</p>
 <p>docker inspect image</p>
 <p>image format registry/image:tag@sha</p>
+<h4 id="docker-buildkit">Docker BuildKit</h4>
+<p>BuildKit is an <code>engine</code> for Docker that replaced an older one. Buildkit can parallel-ize the Docker build process (for multi-stage builds) and can also cache layers in a Dockerfile. <a href="https://depot.dev/blog/buildkit-in-depth">Depot</a> has a good article that goes in depth into the details of Buildkit.
+Another option with buildkit is that we can use different drivers in a <code>docker build</code>. For example, the <code>docker-container</code> driver runs a container that builds the image. The container based driver supports parallel-izing builds and layer caching that the normal driver cannot. There is also a <code>remote</code> driver that can run the image building on a remote server for possible speedups or creating images in limited environments.</p>
+<p>We must first create a builder and then <code>use</code> it, as part of the image build process.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>$ docker buildx create --driver docker-container --name dcbuilder</span></span>
+<span class="line"><span>dcbuilder</span></span>
+<span class="line"><span>$ docker buildx use dcbuilder</span></span></code></pre>
+<p>For example, here is a sample usecase where we build a docker image but do not compress the individual layers within the image</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>docker buildx build \</span></span>
+<span class="line"><span>    --output type=image,compression=uncompressed \</span></span>
+<span class="line"><span>    -t app:v1.0.0 \</span></span>
+<span class="line"><span>    .</span></span></code></pre>
+<p>This level of customization wouldn’t be possible with the default driver and is enabled by the <code>docker-container</code> driver.</p>
 <h4 id="some-non-dockerkubernetes-stuff-i-was-reading-about">Some non-Docker/Kubernetes stuff I was reading about</h4>
 <p>The creator of Prometheus(the logging/monitoring solution for Cloud software) had an interesting <a href="https://promlabs.com/blog/2025/07/17/why-i-recommend-native-prometheus-instrumentation-over-opentelemetry/">blog post</a> on why
 Prometheus might be a better choice over using OpenTelemetry, the key point being:</p>

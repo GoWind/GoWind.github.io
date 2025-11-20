@@ -1,0 +1,524 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-bvzihdzo> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.15.9"><!-- Font preloads --><link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/saiyan_sans/Saiyan-Sans.ttf" as="font" type="font/ttf" crossorigin><!-- Canonical URL --><link rel="canonical" href="https://gowind.github.io/blog/promise/"><!-- Primary Meta Tags --><title>Deep dive into Promises - Part I</title><meta name="title" content="Deep dive into Promises - Part I"><meta name="description" content="A deep dive into Promises in Javascript"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://gowind.github.io/blog/promise/"><meta property="og:title" content="Deep dive into Promises - Part I"><meta property="og:description" content="A deep dive into Promises in Javascript"><meta property="og:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://gowind.github.io/blog/promise/"><meta property="twitter:title" content="Deep dive into Promises - Part I"><meta property="twitter:description" content="A deep dive into Promises in Javascript"><meta property="twitter:image" content="https://gowind.github.io/blog-placeholder-1.jpg"><!-- Cloudflare Web Analytics --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;4de85a62d838459fafd8a042c2f1c7c2&quot;}"></script><!-- End Cloudflare Web Analytics --><style>:root{--accent: #2337ff;--accent-dark: #000d8a;--black: 15, 18, 25;--gray: 96, 115, 159;--gray-light: 229, 233, 240;--gray-dark: 34, 41, 57;--gray-gradient: rgba(var(--gray-light), 50%), #fff;--box-shadow: 0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px rgba(var(--gray), 33%)}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-regular.woff) format("woff");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:Atkinson;src:url(/fonts/atkinson-bold.woff) format("woff");font-weight:700;font-style:normal;font-display:swap}@font-face{font-family:SaiyanSans;src:url(/fonts/saiyan_sans/Saiyan-Sans.ttf) format("truetype");font-weight:400;font-style:normal;font-display:swap}body{font-family:Atkinson,sans-serif;margin:0;padding:0;text-align:left;background:linear-gradient(var(--gray-gradient)) no-repeat;background-size:100% 600px;word-wrap:break-word;overflow-wrap:break-word;color:rgb(var(--gray-dark));font-size:20px;line-height:1.7}main{width:720px;max-width:calc(100% - 2em);margin:auto;padding:3em 1em}h1,h2,h3,h4,h5,h6{margin:0 0 .5rem;color:rgb(var(--black));line-height:1.2}h1{font-size:3.052em}h2{font-size:2.441em}h3{font-size:1.953em}h4{font-size:1.563em}h5{font-size:1.25em}strong,b{font-weight:700}a,a:hover{color:var(--accent)}p{margin-bottom:1em}.prose p{margin-bottom:2em}textarea{width:100%;font-size:16px}input{font-size:16px}table{width:100%}img{max-width:100%;height:auto;border-radius:8px}code{padding:2px 5px;background-color:rgb(var(--gray-light));border-radius:2px}pre{padding:1.5em;border-radius:8px}pre>code{all:unset}blockquote{border-left:4px solid var(--accent);padding:0 0 0 20px;margin:0;font-size:1.333em}hr{border:none;border-top:1px solid rgb(var(--gray-light))}@media(max-width:720px){body{font-size:18px}main{padding:1em}}.sr-only{border:0;padding:0;margin:0;position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px 1px 1px 1px);clip:rect(1px,1px,1px,1px);clip-path:inset(50%);white-space:nowrap}.tag{display:inline-block;background-color:#f3f4f6;border-radius:.5rem;padding:.25rem .75rem;margin:0 .5rem .5rem 0;font-size:.875rem;font-weight:600;color:#4b5563}header[data-astro-cid-3ef6ksr2]{margin:0;padding:0 1em;background:#fff;box-shadow:0 2px 8px rgba(var(--black),5%)}h2[data-astro-cid-3ef6ksr2]{margin:0;font-size:1em}nav[data-astro-cid-3ef6ksr2]{display:flex;align-items:baseline;justify-content:space-between}.internal-links[data-astro-cid-3ef6ksr2]{font-family:SaiyanSans,sans-serif;font-spacing:1em;font-size:2rem}nav[data-astro-cid-3ef6ksr2] .internal-links[data-astro-cid-3ef6ksr2]{margin-right:10em}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{padding:1em .5em;color:var(--black);border-bottom:4px solid transparent;text-decoration:none}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]:hover{color:var(--accent);color:red;animation:shake .2s;animation-iteration-count:1;text-shadow:2px 4px rgba(0,0,0,.2);font-weight:bolder}@keyframes shake{0%{transform:translate(1px,1px) rotate(0)}10%{transform:translate(-1px,-2px) rotate(-5deg)}20%{transform:translate(-3px) rotate(5deg)}30%{transform:translate(3px,2px) rotate(0)}40%{transform:translate(1px,-1px) rotate(5deg)}50%{transform:translate(-1px,2px) rotate(-5deg)}60%{transform:translate(-3px,1px) rotate(0)}70%{transform:translate(3px,1px) rotate(-5deg)}80%{transform:translate(-1px,-1px) rotate(5deg)}90%{transform:translate(1px,2px) rotate(0)}to{transform:translate(1px,-2px) rotate(-5deg)}}nav[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2].active{text-decoration:none;border-bottom-color:red}.social-links[data-astro-cid-3ef6ksr2],.social-links[data-astro-cid-3ef6ksr2] a[data-astro-cid-3ef6ksr2]{display:flex}@media(max-width:720px){.social-links[data-astro-cid-3ef6ksr2]{display:none}}.aura-container[data-astro-cid-3ef6ksr2]{position:relative;display:inline-block;padding:60px}.aura-text[data-astro-cid-3ef6ksr2]{font-size:2.2rem;font-weight:700;font-family:SaiyanSans,sans-serif;color:red;position:relative;z-index:4;-webkit-text-stroke:1px black;letter-spacing:.1em}.aura-text[data-astro-cid-3ef6ksr2] .yellow[data-astro-cid-3ef6ksr2]{color:#ff0}.aura-text[data-astro-cid-3ef6ksr2] .organge[data-astro-cid-3ef6ksr2]{color:orange}.gif-aura[data-astro-cid-3ef6ksr2]{position:absolute;inset:0;background:url(/CFoa1-speed.gif) center/cover no-repeat;z-index:2;mix-blend-mode:screen;opacity:.8}.gif-bg-1[data-astro-cid-3ef6ksr2],.gif-bg-2[data-astro-cid-3ef6ksr2],.gif-bg-3[data-astro-cid-3ef6ksr2],.gif-bg-4[data-astro-cid-3ef6ksr2],.gif-bg-5[data-astro-cid-3ef6ksr2],.gif-bg-6[data-astro-cid-3ef6ksr2],.gif-bg-7[data-astro-cid-3ef6ksr2],.gif-bg-8[data-astro-cid-3ef6ksr2]{position:absolute;width:150px;height:150px;background:url(/CFoa1-speed.gif) center/contain no-repeat;z-index:4;mix-blend-mode:multiply;opacity:.9}.gif-bg-1[data-astro-cid-3ef6ksr2]{top:-5px;left:-5px;transform:rotate(-20deg)}.gif-bg-2[data-astro-cid-3ef6ksr2]{top:-5px;left:25%;transform:rotate(-5deg)}.gif-bg-3[data-astro-cid-3ef6ksr2]{top:-5px;left:50%;transform:rotate(5deg)}.gif-bg-4[data-astro-cid-3ef6ksr2]{top:-15px;right:-30px;transform:rotate(20deg)}.gif-bg-5[data-astro-cid-3ef6ksr2]{bottom:10px;left:-30px;transform:rotate(-160deg)}.gif-bg-6[data-astro-cid-3ef6ksr2]{bottom:10px;left:25%;transform:rotate(-160deg)}.gif-bg-7[data-astro-cid-3ef6ksr2]{bottom:10px;right:25%;transform:rotate(-160deg)}.gif-bg-8[data-astro-cid-3ef6ksr2]{bottom:10px;right:-30px;transform:rotate(160deg)}
+a[data-astro-cid-eimmu3lg]{display:inline-block;text-decoration:none}a[data-astro-cid-eimmu3lg].active{font-weight:bolder;text-decoration:underline}
+.scrollrectangle[data-astro-cid-bvzihdzo]{position:fixed;right:20px;width:20px;height:100px;background-color:#2c65d7;border-radius:10%;transition:top .3s ease-out;transform-origin:center center;animation:squeeze 1s infinite}@keyframes squeeze{0%{transform:scaleY(1)}50%{transform:scaleY(1.5)}to{transform:scaleY(1)}}main[data-astro-cid-bvzihdzo]{width:calc(100% - 2em);max-width:100%;margin:0}.hero-image[data-astro-cid-bvzihdzo]{width:100%}.hero-image[data-astro-cid-bvzihdzo] img[data-astro-cid-bvzihdzo]{display:block;margin:0 auto;border-radius:12px;box-shadow:var(--box-shadow)}.prose[data-astro-cid-bvzihdzo]{width:720px;max-width:calc(100% - 2em);margin:auto;padding:1em;color:rgb(var(--gray-dark))}.title[data-astro-cid-bvzihdzo]{margin-bottom:1em;padding:1em 0;text-align:center;line-height:1}.title[data-astro-cid-bvzihdzo] h1[data-astro-cid-bvzihdzo]{margin:0 0 .5em}.date[data-astro-cid-bvzihdzo]{margin-bottom:.5em;color:rgb(var(--gray))}.last-updated-on[data-astro-cid-bvzihdzo]{font-style:italic}
+</style></head> <body data-astro-cid-bvzihdzo> <header data-astro-cid-3ef6ksr2> <nav data-astro-cid-3ef6ksr2> <div class="aura-container" data-astro-cid-3ef6ksr2> <div class="gif-bg-1" data-astro-cid-3ef6ksr2></div> <div class="gif-bg-2" data-astro-cid-3ef6ksr2></div> <div class="gif-bg-3" data-astro-cid-3ef6ksr2></div> <h2 class="aura-text" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2> <span class="yellow" data-astro-cid-3ef6ksr2>Govind's</span> <img src="/dragonball.jpg" width="30px" height="30px" data-astro-cid-3ef6ksr2> <span data-astro-cid-3ef6ksr2>Blog</span> </a></h2> </div> <div class="internal-links" data-astro-cid-3ef6ksr2> <a href="/" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Home </a>  <a href="/blog" class="active" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Blog </a>  <a href="/ideas" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Steal My Ideas </a>  <a href="/editor" data-astro-cid-3ef6ksr2="true" data-astro-cid-eimmu3lg> Image Editor </a>  </div> <div class="social-links" data-astro-cid-3ef6ksr2> <a href="https://x.com/DeepknowledgeU" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>Follow Astro on X</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/twitter" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" data-astro-cid-3ef6ksr2></path></svg> </a> <a href="https://github.com/Gowind" target="_blank" data-astro-cid-3ef6ksr2> <span class="sr-only" data-astro-cid-3ef6ksr2>My Github</span> <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" astro-icon="social/github" data-astro-cid-3ef6ksr2><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" data-astro-cid-3ef6ksr2></path></svg> </a> </div> </nav> </header>  <main data-astro-cid-bvzihdzo> <article data-astro-cid-bvzihdzo> <div class="scrollrectangle" data-astro-cid-bvzihdzo></div> <script type="module">const o=document.querySelector(".ball"),c=document.querySelector("header"),r=document.documentElement.scrollHeight-window.innerHeight,t=c?.offsetHeight;o.style.top=`${t+100}px`;window.addEventListener("scroll",()=>{const n=window.scrollY/r,l=window.innerHeight-100;let e=n*l;e=e>=t+100?e:t+100,o.style.top=`${e}px`});</script> <div class="hero-image" data-astro-cid-bvzihdzo>  </div> <div class="prose" data-astro-cid-bvzihdzo> <div class="title" data-astro-cid-bvzihdzo> <div class="date" data-astro-cid-bvzihdzo> <time datetime="2025-11-18T00:00:00.000Z"> Nov 18, 2025 </time>  </div> <h1 data-astro-cid-bvzihdzo>Deep dive into Promises - Part I</h1> <hr data-astro-cid-bvzihdzo> </div>  <h2 id="prologue">Prologue</h2>
+<p>It all started with the following piece of code and a unit test for it (I wrote this in Typescript, but its practically the same)</p>
+<h5 id="context">Context</h5>
+<p>At a project at work, we had to implement a counter that keeps track of the number of active jobs. When a shutdown signal (via SIGTERM) is sent to the program, it needs to keep the program alive for as long as possible so that all the active jobs are completed and shutdown once the last active job finishes.
+The shutdown method thus returns a Promise that is resolved once the last operation is completed and the shutdown code can be chained to the Promise using the <code>.then</code> handler.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { strict </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> assert } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> 'node:assert'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { describe, it } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> 'node:test'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">function</span><span style="color:#B392F0"> createCounter</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> operationsMap</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> Map</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">  let</span><span style="color:#E1E4E8"> shutdownSignalReceived </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  let</span><span style="color:#E1E4E8"> { promise, resolve, reject } </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> Promise</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">withResolvers</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  function</span><span style="color:#B392F0"> maybeResolveShutdown</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (shutdownSignalReceived </span><span style="color:#F97583">&#x26;&#x26;</span><span style="color:#E1E4E8"> operationsMap.size </span><span style="color:#F97583">===</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">      resolve</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> counter</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">    get</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">operationId</span><span style="color:#E1E4E8">) { operationsMap.</span><span style="color:#B392F0">get</span><span style="color:#E1E4E8">(operationId) },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    set</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">operationId</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">value</span><span style="color:#E1E4E8">)  {</span></span>
+<span class="line"><span style="color:#E1E4E8">      operationsMap.</span><span style="color:#B392F0">set</span><span style="color:#E1E4E8">(operationId, value);</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    remove</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">operationId</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">      const</span><span style="color:#79B8FF"> value</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> operationsMap.</span><span style="color:#B392F0">get</span><span style="color:#E1E4E8">(operationId);</span></span>
+<span class="line"><span style="color:#E1E4E8">      operationsMap.</span><span style="color:#B392F0">delete</span><span style="color:#E1E4E8">(operationId);</span></span>
+<span class="line"><span style="color:#B392F0">      maybeResolveShutdown</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">      return</span><span style="color:#E1E4E8"> value;</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    size</span><span style="color:#E1E4E8"> () { </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> operationsMap.size},</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#B392F0"> shutdown</span><span style="color:#E1E4E8">()  {</span></span>
+<span class="line"><span style="color:#E1E4E8">      shutdownSignalReceived </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">      maybeResolveShutdown</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">      return</span><span style="color:#E1E4E8"> promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">  };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> counter;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> function</span><span style="color:#B392F0"> getPromiseState</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">p</span><span style="color:#E1E4E8">)  {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> sentinelValue</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> { v: </span><span style="color:#9ECBFF">'sentinel'</span><span style="color:#E1E4E8"> };</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> sentinelPromise</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> Promise</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">resolve</span><span style="color:#E1E4E8">(sentinelValue);</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> result</span><span style="color:#F97583"> =</span><span style="color:#F97583"> await</span><span style="color:#79B8FF"> Promise</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">race</span><span style="color:#E1E4E8">([p, sentinelPromise]);</span></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> result </span><span style="color:#F97583">===</span><span style="color:#E1E4E8"> sentinelValue </span><span style="color:#F97583">?</span><span style="color:#9ECBFF"> 'pending'</span><span style="color:#F97583"> :</span><span style="color:#9ECBFF"> 'resolved'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">describe</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">' Promise counter tests '</span><span style="color:#E1E4E8">, () </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">it</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'checks that counter shutdown promise behaves as expected'</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">async</span><span style="color:#E1E4E8"> () </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#79B8FF"> counter</span><span style="color:#F97583"> =</span><span style="color:#B392F0"> createCounter</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#79B8FF"> value</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'MyValue'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    counter.</span><span style="color:#B392F0">set</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'key'</span><span style="color:#E1E4E8">, value);</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#79B8FF"> shutDownPromise</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> counter.</span><span style="color:#B392F0">shutdown</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#E1E4E8">    assert.</span><span style="color:#B392F0">equal</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'pending'</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">await</span><span style="color:#B392F0"> getPromiseState</span><span style="color:#E1E4E8">(shutDownPromise));</span></span>
+<span class="line"><span style="color:#E1E4E8">    counter.</span><span style="color:#B392F0">remove</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'key'</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">    assert.</span><span style="color:#B392F0">equal</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'resolved'</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">await</span><span style="color:#B392F0"> getPromiseState</span><span style="color:#E1E4E8">(shutDownPromise));</span></span>
+<span class="line"><span style="color:#E1E4E8">  });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span></code></pre>
+<p>I wrote a simple unit-test to test this implementation. And lo and behold, it failed !</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sh"><code><span class="line"><span style="color:#B392F0">✖</span><span style="color:#9ECBFF"> failing</span><span style="color:#9ECBFF"> tests:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">test</span><span style="color:#9ECBFF"> at</span><span style="color:#9ECBFF"> code.js:49:1</span></span>
+<span class="line"><span style="color:#B392F0">✖</span><span style="color:#9ECBFF"> checks</span><span style="color:#9ECBFF"> that</span><span style="color:#9ECBFF"> counter</span><span style="color:#9ECBFF"> shutdown</span><span style="color:#9ECBFF"> promise</span><span style="color:#9ECBFF"> behaves</span><span style="color:#9ECBFF"> as</span><span style="color:#9ECBFF"> expected</span><span style="color:#E1E4E8"> (0.691625ms)</span></span>
+<span class="line"><span style="color:#B392F0">  AssertionError</span><span style="color:#E1E4E8"> [ERR_ASSERTION]: Expected values to be strictly equal:</span></span>
+<span class="line"><span style="color:#B392F0">  +</span><span style="color:#9ECBFF"> actual</span><span style="color:#9ECBFF"> -</span><span style="color:#9ECBFF"> expected</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">  +</span><span style="color:#9ECBFF"> 'resolved'</span></span>
+<span class="line"><span style="color:#B392F0">  -</span><span style="color:#9ECBFF"> 'pending'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">      at</span><span style="color:#9ECBFF"> TestContext.</span><span style="color:#F97583">&#x3C;</span><span style="color:#9ECBFF">anonymou</span><span style="color:#E1E4E8">s</span><span style="color:#F97583">></span><span style="color:#E1E4E8"> (file:///Users/govind/personal/quickjs/code.js:56:12)</span></span>
+<span class="line"><span style="color:#B392F0">      at</span><span style="color:#9ECBFF"> async</span><span style="color:#9ECBFF"> Test.run</span><span style="color:#E1E4E8"> (node:internal/test_runner/test:932:9)</span></span>
+<span class="line"><span style="color:#B392F0">      at</span><span style="color:#9ECBFF"> async</span><span style="color:#9ECBFF"> Promise.all</span><span style="color:#E1E4E8"> (index </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">      at</span><span style="color:#9ECBFF"> async</span><span style="color:#9ECBFF"> Suite.run</span><span style="color:#E1E4E8"> (node:internal/test_runner/test:1310:7)</span></span>
+<span class="line"><span style="color:#B392F0">      at</span><span style="color:#9ECBFF"> async</span><span style="color:#9ECBFF"> startSubtestAfterBootstrap</span><span style="color:#E1E4E8"> (node:internal/test_runner/harness:296:3) {</span></span>
+<span class="line"><span style="color:#B392F0">    generatedMessage:</span><span style="color:#79B8FF"> true</span><span style="color:#9ECBFF">,</span></span>
+<span class="line"><span style="color:#B392F0">    code:</span><span style="color:#9ECBFF"> 'ERR_ASSERTION',</span></span>
+<span class="line"><span style="color:#B392F0">    actual:</span><span style="color:#9ECBFF"> 'resolved',</span></span>
+<span class="line"><span style="color:#B392F0">    expected:</span><span style="color:#9ECBFF"> 'pending',</span></span>
+<span class="line"><span style="color:#B392F0">    operator:</span><span style="color:#9ECBFF"> 'strictEqual'</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span></code></pre>
+<p>The test creates a Promise that is already resolved and then races it against the shutdown promise. Ideally by the time <code>Promise.race</code> is called, the shutdown promise must be resolved as we removed the last key from the counter after calling shutdown, but that doesn’t seem to be the case ! The <code>Promise.race</code> call with <code>[shutdownPromise, sentinel]</code> resolves with the sentinel value, which I didn’t expect.</p>
+<p>After a couple of hours of breaking my head over this “simple” piece of code and being hit by a wave of imposter syndrome, I finally figured out what was the problem in code and turns out, it was just a one-line fix:
+Changing the <code>shutdown</code> function from <code>async</code> to sync</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#6A737D">// async shutdown()  {</span></span>
+<span class="line"><span style="color:#B392F0">shutdown</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    shutdownSignalReceived </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">    maybeResolveShutdown</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span></code></pre>
+<p>Dont async function return promises ? So this shouldn’t have been an issue. I mean, I am returning a Promise already so what could go wrong ? Turns out functions marked async wrap their return arguments in a new Promise and if the return value is also a Promise then the returned value <code>Promise(promiseA)</code> simply resolve to <code>promiseA</code>.</p>
+<p>However, <strong>WHEN</strong> the new promise resolves is an interesting(or weird, if you do not like Javascript) thing and the initial bug in the implementation was due to the mismatch in the timing of the Promise resolution.</p>
+<p>To understand this and more lets take a deep-dive into how Promise work and how they are implemented by a Javascript engine.</p>
+<h3 id="the-basics-before-we-start">The basics, before we start</h3>
+<p>For exploring the implementation of Promises, I decided to look into the source code of <a href="https://github.com/bellard/quickjs">QuickJs</a>, the JS engine written in C by the legendary Fabrice Bellard. I chose QuickJs (henceforth abbreviated to qjs) because it was written in C and is relatively small (50k LOC in quickjs.c as opposed to the 1.3M lines or so of code in V8). Initially I was worried if there would be a lot of difference in the implementations of qjs and v8, but turns out the <a href="https://tc39.es/ecma262/#sec-fulfillpromise">Javascript language specification</a> specifies exactly how a Promise must be created, fulfilled and the handlers are called etc and qjs implements the spec faithfully. So it looks like all the extra code in V8 is mostly about how to make JS faster using a JIT and/or better garbage collectors (and to V8’s credit it seems to be an order of magnitude or more faster in benchmarks when the JIT kicks in).
+For the purpose of our education though, qjs should be sufficient.</p>
+<p>Let’s start with some basics
+A <code>JSValue</code> data structure represents a value in Javascript. A value can be one of <code>bool</code> | <code>string</code> | <code>number</code> | <code>object</code> | <code>null</code> etc</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">typedef</span><span style="color:#F97583"> union</span><span style="color:#E1E4E8"> JSValueUnion {</span></span>
+<span class="line"><span style="color:#F97583">    int32_t</span><span style="color:#E1E4E8"> int32;</span></span>
+<span class="line"><span style="color:#F97583">    double</span><span style="color:#E1E4E8"> float64;</span></span>
+<span class="line"><span style="color:#F97583">    void</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8">ptr;</span></span>
+<span class="line"><span style="color:#F97583">#if</span><span style="color:#B392F0"> JS_SHORT_BIG_INT_BITS</span><span style="color:#F97583"> ==</span><span style="color:#79B8FF"> 32</span></span>
+<span class="line"><span style="color:#F97583">    int32_t</span><span style="color:#E1E4E8"> short_big_int;</span></span>
+<span class="line"><span style="color:#F97583">#else</span></span>
+<span class="line"><span style="color:#F97583">    int64_t</span><span style="color:#E1E4E8"> short_big_int;</span></span>
+<span class="line"><span style="color:#F97583">#endif</span></span>
+<span class="line"><span style="color:#E1E4E8">} JSValueUnion;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">typedef</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> JSValue {</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValueUnion u;</span></span>
+<span class="line"><span style="color:#F97583">    int64_t</span><span style="color:#E1E4E8"> tag;</span></span>
+<span class="line"><span style="color:#E1E4E8">} JSValue;</span></span>
+<span class="line"></span></code></pre>
+<p>The tag defines what the value in the union is. Depending on the tag, the right kind of value is extracted by the interpreter using macros</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_TAG</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((</span><span style="color:#F97583">int32_t</span><span style="color:#E1E4E8">)(v).tag)</span></span>
+<span class="line"><span style="color:#6A737D">/* same as JS_VALUE_GET_TAG, but return JS_TAG_FLOAT64 with NaN boxing */</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_NORM_TAG</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">JS_VALUE_GET_TAG</span><span style="color:#E1E4E8">(v)</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_INT</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((v).u.int32)</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_BOOL</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((v).u.int32)</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_FLOAT64</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((v).u.float64)</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_SHORT_BIG_INT</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((v).u.short_big_int)</span></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> JS_VALUE_GET_PTR</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) ((v).u.ptr)</span></span></code></pre>
+<p>Number types like <code>bool</code> , <code>number</code> etc can fit in &#x3C; 64-bits. For anything larger, such as Strings, Objects etc, the JSValue stores a pointer to the object and depending on the tag, the <code>void *ptr</code> in the tag is type cast as needed. For example, here is the implementation of the <code>String type</code> in qjs</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> JSString {</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSRefCountHeader header;</span><span style="color:#6A737D"> /* must come first, 32-bit */</span></span>
+<span class="line"><span style="color:#F97583">    uint32_t</span><span style="color:#E1E4E8"> len : </span><span style="color:#79B8FF">31</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    uint8_t</span><span style="color:#E1E4E8"> is_wide_char : </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* 0 = 8 bits, 1 = 16 bits characters */</span></span>
+<span class="line"><span style="color:#F97583">    uint32_t</span><span style="color:#E1E4E8"> hash : </span><span style="color:#79B8FF">30</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    uint8_t</span><span style="color:#E1E4E8"> atom_type : </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* != 0 if atom, JS_ATOM_TYPE_x */</span></span>
+<span class="line"><span style="color:#F97583">    uint32_t</span><span style="color:#E1E4E8"> hash_next;</span><span style="color:#6A737D"> /* atom_index for JS_ATOM_TYPE_SYMBOL */</span></span>
+<span class="line"><span style="color:#F97583">    union</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        uint8_t</span><span style="color:#FFAB70"> str8</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span><span style="color:#6A737D"> /* 8 bit strings will get an extra null terminator */</span></span>
+<span class="line"><span style="color:#F97583">        uint16_t</span><span style="color:#FFAB70"> str16</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    } u;</span></span>
+<span class="line"><span style="color:#E1E4E8">};</span></span></code></pre>
+<p>A <code>JSValue</code> that represents a String will have a tag = <code>JS_TAG_STRING</code> and the pointer in <code>value.u</code> is obtained and type cast correctly</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> inline</span><span style="color:#E1E4E8"> BOOL </span><span style="color:#B392F0">JS_IsEmptyString</span><span style="color:#E1E4E8">(JSValueConst </span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> JS_VALUE_GET_TAG</span><span style="color:#E1E4E8">(v) </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> JS_TAG_STRING </span><span style="color:#F97583">&#x26;&#x26;</span><span style="color:#B392F0"> JS_VALUE_GET_STRING</span><span style="color:#E1E4E8">(v)->len </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>A Promise is a <code>JS_VALUE</code> with tag = <code>JS_TAG_OBJECT</code>. In JS as you are well aware, objects are quite generic. Arrays are objects, functions are objects, and then you have your typical objects <code>a = {'1': 2}</code> and Maps, Sets etc and so on. To know excatly what kind of an object a Value is , the <code>ptr</code> of a value is type cast to a <code>JSObject *</code> , The JSObject struct has a field <code>class_id</code> that denotes the exact sub-type of object (int array, float array, map, set, promise, function etc).</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> JSObject {</span></span>
+<span class="line"><span style="color:#F97583">    union</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        ...</span></span>
+<span class="line"><span style="color:#F97583">        struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">            // other fields elided for easier understanding</span></span>
+<span class="line"><span style="color:#F97583">            uint8_t</span><span style="color:#E1E4E8"> is_constructor : </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* TRUE if object is a constructor function */</span></span>
+<span class="line"><span style="color:#F97583">            uint8_t</span><span style="color:#E1E4E8"> has_immutable_prototype : </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* cannot modify the prototype */</span></span>
+<span class="line"><span style="color:#F97583">            uint8_t</span><span style="color:#E1E4E8"> tmp_mark : </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* used in JS_WriteObjectRec() */</span></span>
+<span class="line"><span style="color:#F97583">            uint16_t</span><span style="color:#E1E4E8"> class_id;</span><span style="color:#6A737D"> /* see JS_CLASS_x */</span></span>
+<span class="line"><span style="color:#E1E4E8">        };</span></span>
+<span class="line"><span style="color:#E1E4E8">    };</span></span>
+<span class="line"><span style="color:#6A737D">    // other fields elided for easier understanding</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>For a Promise, the <code>JSObject</code> with <code>void *ptr</code> points to a struct of type <code>JSPromiseData</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">typedef</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> JSPromiseData {</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseStateEnum promise_state;</span></span>
+<span class="line"><span style="color:#6A737D">    /* 0=fulfill, 1=reject, list of JSPromiseReactionData.link */</span></span>
+<span class="line"><span style="color:#F97583">    struct</span><span style="color:#E1E4E8"> list_head </span><span style="color:#FFAB70">promise_reactions</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    BOOL is_handled;</span><span style="color:#6A737D"> /* Note: only useful to debug */</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue promise_result;</span></span>
+<span class="line"><span style="color:#E1E4E8">} JSPromiseData;</span></span></code></pre>
+<p>The enum describes the state of the Promise: if it is pending, fulfilled or rejected. The promise_reactions is a list of callbacks chained to one another, each chain for the case when a promise is fulfilled or rejected respectively (for example, when you add a callback to the Promise using <code>.then</code> or <code>.catch</code> or <code>.finally</code>). The <code>promise_result</code> is the value that the Promise is resolved with (for example if we call <code>Promise.resolve(5)</code>, the promise_result is a JSValue of type = <code>JS_TAG_INT</code> and value 5)</p>
+<p>When we create a Promise in Javascript using <code>new Promise((resolve, reject) {...})</code>, the fn that is passed as an argument to the Promise constructor is called as an <code>executor</code>. The <code>executor</code> fn takes 2 arguments as input: <code>resolve</code> and <code>reject</code> that are fns and fulfill and reject the Promise respectively when called with args.
+<code>resolve</code> and <code>reject</code> are a bit magical in the sense that they have some sort of a reference to the Promise so that when called, they know how to set the state of the Promise and its value.</p>
+<p>A Promise once fulfilled or rejected cannot be changed (that is a fulfilled promise cannot be re-fulfilled or rejected and vice-versa). <code>await</code>-ing a Promise or chaining new callbacks to it yields the same fulfilled value .</p>
+<h5 id="how-does-it-work-at-the-interpreter-level">How does it work at the interpreter level ?</h5>
+<p>Lets look at the implementation of the <code>js_promise_constructor</code> function which is the C function that gets called when you run the js <code>new Promise(executor)</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#E1E4E8"> JSValue </span><span style="color:#B392F0">js_promise_constructor</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#FFAB70">new_target</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">                                      int</span><span style="color:#FFAB70"> argc</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#F97583">*</span><span style="color:#FFAB70">argv</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValueConst executor;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue obj;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">], ret;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> i;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    executor </span><span style="color:#F97583">=</span><span style="color:#FFAB70"> argv</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">check_function</span><span style="color:#E1E4E8">(ctx, executor))</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> JS_EXCEPTION;</span></span>
+<span class="line"><span style="color:#E1E4E8">    obj </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_create_from_ctor</span><span style="color:#E1E4E8">(ctx, new_target, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(obj))</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> JS_EXCEPTION;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_mallocz</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s));</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">s)</span></span>
+<span class="line"><span style="color:#F97583">        goto</span><span style="color:#E1E4E8"> fail;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->promise_state </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_PROMISE_PENDING;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->is_handled </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> FALSE</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">        init_list_head</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s->promise_reactions[i]);</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->promise_result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#B392F0">    JS_SetOpaque</span><span style="color:#E1E4E8">(obj, s);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">js_create_resolving_functions</span><span style="color:#E1E4E8">(ctx, args, obj))</span></span>
+<span class="line"><span style="color:#F97583">        goto</span><span style="color:#E1E4E8"> fail;</span></span>
+<span class="line"><span style="color:#E1E4E8">    ret </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_Call</span><span style="color:#E1E4E8">(ctx, executor, JS_UNDEFINED, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">, (JSValueConst </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">)args);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(ret)) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        JSValue ret2, error;</span></span>
+<span class="line"><span style="color:#E1E4E8">        error </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetException</span><span style="color:#E1E4E8">(ctx);</span></span>
+<span class="line"><span style="color:#E1E4E8">        ret2 </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_Call</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">], JS_UNDEFINED, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, (JSValueConst </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">)</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">error);</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, error);</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(ret2))</span></span>
+<span class="line"><span style="color:#F97583">            goto</span><span style="color:#E1E4E8"> fail1;</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, ret2);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, ret);</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> obj;</span></span>
+<span class="line"><span style="color:#E1E4E8"> fail1:</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#E1E4E8"> fail:</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, obj);</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> JS_EXCEPTION;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The <code>executor</code> is the argument we pass to the Promise constructor call as the first argument. The lines to watch are where the
+<code>JSPromiseData</code> object is created and set. The state of the promise is <code>JS_PROMISE_PENDING</code> and the result is <code>undefined</code>.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#E1E4E8">s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_mallocz</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s));</span></span>
+<span class="line"><span style="color:#E1E4E8">...</span></span>
+<span class="line"><span style="color:#E1E4E8">s</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">promise_state </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_PROMISE_PENDING;</span></span>
+<span class="line"><span style="color:#E1E4E8">s</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">is_handled </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> FALSE</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">    init_list_head</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s</span><span style="color:#F97583">-></span><span style="color:#FFAB70">promise_reactions</span><span style="color:#E1E4E8">[i]);</span></span>
+<span class="line"><span style="color:#E1E4E8">s</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">promise_result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#B392F0">JS_SetOpaque</span><span style="color:#E1E4E8">(obj, s);</span></span></code></pre>
+<p>Before we call the <code>executor</code> with <code>resolve</code> and <code>reject</code> as arguments, we need to set them up with a reference to the Promise object we just created so that when <code>resolve</code> or <code>reject</code> is called, they can set the state of the Promise appropriately. This is done by the <code>js_create_resolving_functions</code> fn just before the <code>JS_Call(.. executor)</code> to call the executor</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>static int js_create_resolving_functions(JSContext *ctx,</span></span>
+<span class="line"><span>                                         JSValue *resolving_funcs,</span></span>
+<span class="line"><span>                                         JSValueConst promise)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>    JSValue obj;</span></span>
+<span class="line"><span>    JSPromiseFunctionData *s;</span></span>
+<span class="line"><span>    JSPromiseFunctionDataResolved *sr;</span></span>
+<span class="line"><span>    int i, ret;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    sr = js_malloc(ctx, sizeof(*sr));</span></span>
+<span class="line"><span>    if (!sr)</span></span>
+<span class="line"><span>        return -1;</span></span>
+<span class="line"><span>    sr->ref_count = 1;</span></span>
+<span class="line"><span>    sr->already_resolved = FALSE; /* must be shared between the two functions */</span></span>
+<span class="line"><span>    ret = 0;</span></span>
+<span class="line"><span>    for(i = 0; i &#x3C; 2; i++) {</span></span>
+<span class="line"><span>        obj = JS_NewObjectProtoClass(ctx, ctx->function_proto,</span></span>
+<span class="line"><span>                                     JS_CLASS_PROMISE_RESOLVE_FUNCTION + i);</span></span>
+<span class="line"><span>        if (JS_IsException(obj))</span></span>
+<span class="line"><span>            goto fail;</span></span>
+<span class="line"><span>        s = js_malloc(ctx, sizeof(*s));</span></span>
+<span class="line"><span>        if (!s) {</span></span>
+<span class="line"><span>            JS_FreeValue(ctx, obj);</span></span>
+<span class="line"><span>        fail:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>            if (i != 0)</span></span>
+<span class="line"><span>                JS_FreeValue(ctx, resolving_funcs[0]);</span></span>
+<span class="line"><span>            ret = -1;</span></span>
+<span class="line"><span>            break;</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>        sr->ref_count++;</span></span>
+<span class="line"><span>        s->presolved = sr;</span></span>
+<span class="line"><span>        s->promise = JS_DupValue(ctx, promise);</span></span>
+<span class="line"><span>        JS_SetOpaque(obj, s);</span></span>
+<span class="line"><span>        js_function_set_properties(ctx, obj, JS_ATOM_empty_string, 1);</span></span>
+<span class="line"><span>        resolving_funcs[i] = obj;</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    js_promise_resolve_function_free_resolved(ctx->rt, sr);</span></span>
+<span class="line"><span>    return ret;</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p><code>resolve</code> and <code>reject</code> are sort of special objects with  <code>class_id</code>s <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code>, <code>JS_CLASS_PROMISE_REJECT_FUNCTION</code>. The payload of these objects are of type <code>JSPromiseFunctionData</code></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>typedef struct JSPromiseFunctionData {</span></span>
+<span class="line"><span>    JSValue promise;</span></span>
+<span class="line"><span>    JSPromiseFunctionDataResolved *presolved;</span></span>
+<span class="line"><span>} JSPromiseFunctionData;</span></span></code></pre>
+<p>Notice how the resolving functions’ payload tracks a promise and pointer a <code>JSPromiseFunctionDataResolved</code> structure</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>typedef struct JSPromiseFunctionDataResolved {</span></span>
+<span class="line"><span>    int ref_count;</span></span>
+<span class="line"><span>    BOOL already_resolved;</span></span>
+<span class="line"><span>} JSPromiseFunctionDataResolved;</span></span></code></pre>
+<p>The <code>DataResolved</code> object is shared by both the resolve/reject fns so that if you call one after another, they know if the promise has already been resolved or rejected</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span> JSPromiseFunctionDataResolved *sr = js_malloc(ctx, sizeof(*sr));</span></span>
+<span class="line"><span> sr->ref_count = 1;</span></span>
+<span class="line"><span> sr->already_resolved = FALSE; /* must be shared between the two functions */</span></span></code></pre>
+<p>When creating each of the <code>resolve</code>/<code>reject</code> fns we intialize the fns each with the shared DataResolved structure and the Promise we created</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>for(i = 0; i &#x3C; 2; i++) {</span></span>
+<span class="line"><span>    obj = JS_NewObjectProtoClass(ctx, ctx->function_proto,</span></span>
+<span class="line"><span>                                 JS_CLASS_PROMISE_RESOLVE_FUNCTION + i);</span></span>
+<span class="line"><span>    s = js_malloc(ctx, sizeof(*s));</span></span>
+<span class="line"><span>    sr->ref_count++;</span></span>
+<span class="line"><span>    s->presolved = sr;</span></span>
+<span class="line"><span>    s->promise = JS_DupValue(ctx, promise);</span></span>
+<span class="line"><span>    JS_SetOpaque(obj, s);</span></span></code></pre>
+<p>So to recap, we have</p>
+<ol>
+<li>A Promise that will be resolved/rejected by the <code>executor</code></li>
+<li>A resolve and a reject fn with references to the Promise so that when they are called with a value they know how to resolve the Promise</li>
+</ol>
+<p>We need to return these resolving functions to the caller of <code>js_create_resolving_functions</code>. C functions cannot return multiple values as return values, so the caller creates space in its stack to store references to the resolving functions and passes them as arguments to <code>js_create_resolving_functions</code> which sets these slots to each of the resolving function</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>// js_promise_constructor(...) {</span></span>
+<span class="line"><span>JSValue args[2], ret;</span></span>
+<span class="line"><span>executor = argv[0];</span></span>
+<span class="line"><span>obj = js_create_from_ctor(ctx, new_target, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span>//obj.s is the promise that is initialized  as above</span></span>
+<span class="line"><span>// the resolve/reject fns created by js_create_... are captured in args</span></span>
+<span class="line"><span>if (js_create_resolving_functions(ctx, args, obj))</span></span>
+<span class="line"><span>    goto fail;</span></span>
+<span class="line"><span>// args now has resolve and reject fns, call the executor fn with resolve and reject as args</span></span>
+<span class="line"><span>ret = JS_Call(ctx, executor, JS_UNDEFINED, 2, (JSValueConst *)args);</span></span></code></pre>
+<p>Assume that our <code>executor</code> a JS function, finishes successfully and wishes to resolve the Promise with a value of <code>5</code>. It calls the <code>resolve</code> fn that is passed to it as argument,  with an argument of <code>JSValue {.tag = JS_TAG_INT, .u.int32 = 5}</code>;
+Recall that our <code>resolve</code> fn had a class_id of <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code>. Qjs interpreter when it evaluates a func object of that class_id, dispatches to the function <code>js_promise_resolve_function_call</code>, setting the argument <code>func_obj</code> as the resolve fn</p>
+<p>The logic is straight forward</p>
+<ol>
+<li>Get the promise associated the resolve function using <code>func_obj->u.promise_function_data</code></li>
+<li>mark the structure shared by the resolved and the reject function as already solved, so that if we call resolve or reject again, we can ignore the changes.
+3.Set the promise as fulfilled using <code>fulfill_or_reject_promise</code>. This fn sets the Promise’s state to Fulfilled or Rejected. If a <code>then</code> callback was previously added to the Promise, (either as <code>.then((v) => {})</code> or as <code>.then((onFulFilled, on Rejected)))</code> , it runs the associated reaction handlers.</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>static JSValue js_promise_resolve_function_call(JSContext *ctx,</span></span>
+<span class="line"><span>                                                JSValueConst func_obj,</span></span>
+<span class="line"><span>                                                JSValueConst this_val,</span></span>
+<span class="line"><span>                                                int argc, JSValueConst *argv,</span></span>
+<span class="line"><span>                                                int flags)</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>    JSObject *p = JS_VALUE_GET_OBJ(func_obj);</span></span>
+<span class="line"><span>    JSPromiseFunctionData *s;</span></span>
+<span class="line"><span>    JSValueConst resolution, args[3];</span></span>
+<span class="line"><span>    JSValue then;</span></span>
+<span class="line"><span>    BOOL is_reject;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    s = p->u.promise_function_data;</span></span>
+<span class="line"><span>    if (!s || s->presolved->already_resolved)</span></span>
+<span class="line"><span>        return JS_UNDEFINED;</span></span>
+<span class="line"><span>    s->presolved->already_resolved = TRUE;</span></span>
+<span class="line"><span>    is_reject = p->class_id - JS_CLASS_PROMISE_RESOLVE_FUNCTION;</span></span>
+<span class="line"><span>    if (argc > 0)</span></span>
+<span class="line"><span>        resolution = argv[0];</span></span>
+<span class="line"><span>    else</span></span>
+<span class="line"><span>        resolution = JS_UNDEFINED;</span></span>
+<span class="line"><span>    if (is_reject || !JS_IsObject(resolution)) {</span></span>
+<span class="line"><span>        goto done;</span></span>
+<span class="line"><span>    } else if (js_same_value(ctx, resolution, s->promise)) {</span></span>
+<span class="line"><span>        JS_ThrowTypeError(ctx, "promise self resolution");</span></span>
+<span class="line"><span>        goto fail_reject;</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    then = JS_GetProperty(ctx, resolution, JS_ATOM_then);</span></span>
+<span class="line"><span>    if (JS_IsException(then)) {</span></span>
+<span class="line"><span>        JSValue error;</span></span>
+<span class="line"><span>    fail_reject:</span></span>
+<span class="line"><span>        error = JS_GetException(ctx);</span></span>
+<span class="line"><span>        reject_promise(ctx, s->promise, error);</span></span>
+<span class="line"><span>        JS_FreeValue(ctx, error);</span></span>
+<span class="line"><span>    } else if (!JS_IsFunction(ctx, then)) {</span></span>
+<span class="line"><span>        JS_FreeValue(ctx, then);</span></span>
+<span class="line"><span>        done:</span></span>
+<span class="line"><span>        fulfill_or_reject_promise(ctx, s->promise, resolution, is_reject);</span></span>
+<span class="line"><span>    } else {</span></span>
+<span class="line"><span>        args[0] = s->promise;</span></span>
+<span class="line"><span>        args[1] = resolution;</span></span>
+<span class="line"><span>        args[2] = then;</span></span>
+<span class="line"><span>        JS_EnqueueJob(ctx, js_promise_resolve_thenable_job, 3, args);</span></span>
+<span class="line"><span>        JS_FreeValue(ctx, then);</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    return JS_UNDEFINED;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>```c</span></span>
+<span class="line"><span>static void fulfill_or_reject_promise(JSContext *ctx, JSValueConst promise,</span></span>
+<span class="line"><span>                                      JSValueConst value, BOOL is_reject)</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>    JSPromiseData *s = JS_GetOpaque(promise, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span>    struct list_head *el, *el1;</span></span>
+<span class="line"><span>    JSPromiseReactionData *rd;</span></span>
+<span class="line"><span>    JSValueConst args[5];</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    set_value(ctx, &#x26;s->promise_result, JS_DupValue(ctx, value));</span></span>
+<span class="line"><span>    s->promise_state = JS_PROMISE_FULFILLED + is_reject;</span></span>
+<span class="line"><span>    ...</span></span>
+<span class="line"><span>    if (s->promise_state == JS_PROMISE_REJECTED &#x26;&#x26; !s->is_handled) {</span></span>
+<span class="line"><span>        JSRuntime *rt = ctx->rt;</span></span>
+<span class="line"><span>        if (rt->host_promise_rejection_tracker) {</span></span>
+<span class="line"><span>            rt->host_promise_rejection_tracker(ctx, promise, value, FALSE,</span></span>
+<span class="line"><span>                                               rt->host_promise_rejection_tracker_opaque);</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>    // Loop through the linked Callbacks and enqueue them as a microTask</span></span>
+<span class="line"><span>    list_for_each_safe(el, el1, &#x26;s->promise_reactions[is_reject]) {</span></span>
+<span class="line"><span>        rd = list_entry(el, JSPromiseReactionData, link);</span></span>
+<span class="line"><span>        args[0] = rd->resolving_funcs[0];</span></span>
+<span class="line"><span>        args[1] = rd->resolving_funcs[1];</span></span>
+<span class="line"><span>        args[2] = rd->handler;</span></span>
+<span class="line"><span>        args[3] = JS_NewBool(ctx, is_reject);</span></span>
+<span class="line"><span>        args[4] = value;</span></span>
+<span class="line"><span>        JS_EnqueueJob(ctx, promise_reaction_job, 5, args);</span></span>
+<span class="line"><span>        list_del(&#x26;rd->link);</span></span>
+<span class="line"><span>        promise_reaction_data_free(ctx->rt, rd);</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    list_for_each_safe(el, el1, &#x26;s->promise_reactions[1 - is_reject]) {</span></span>
+<span class="line"><span>        rd = list_entry(el, JSPromiseReactionData, link);</span></span>
+<span class="line"><span>        list_del(&#x26;rd->link);</span></span>
+<span class="line"><span>        promise_reaction_data_free(ctx->rt, rd);</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>There are 2 more items we will explore in this blog post before taking a break <code>JS_EnqueueJob</code> and <code>js_promise_then</code> - the function that handles when a callback is set on a Promise using the <code>.then</code> method on a Promise</p>
+<h4 id="microtask-queues-and-promises">Microtask queues and Promises</h4>
+<p>Most of you might be familiar (if not used) the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide">Microtask Queue API</a> in Javascript. The microtasks are functions/tasks that are run when the execution stack is empty: that is your JS runtime has finished loading a modules and all the function calls starting from some <code>main</code> and is waiting for the event loop to terminate. While the runtime polls the event loop, if there are any callbacks associated with timers or promises are ready to be executed, the runtime dequeues these microtasks and execute them. NodeJS for example exposes this <code>queueMicrotask</code> as an API to the programmers so that programmers can schedule microtasks as needed. This however, seems to be a custom API that is not defined in the specification. QuickJs does not expose a <code>queueMicrotask</code> API, but the <code>JS_EnqueueJob</code> calls in the code we see above basically enqueues promise reactions as microtasks.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#6A737D">// module a.js</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">function</span><span style="color:#B392F0"> somePromise</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">  let</span><span style="color:#E1E4E8"> p </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> Promise</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">withResolvers</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#B392F0">  setTimeout</span><span style="color:#E1E4E8">(() </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> { p.</span><span style="color:#B392F0">resolve</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">4000</span><span style="color:#E1E4E8">)}, </span><span style="color:#79B8FF">5000</span><span style="color:#E1E4E8">); </span><span style="color:#6A737D">// resolve promise after 5 secs</span></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> p.promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">let</span><span style="color:#E1E4E8"> k </span><span style="color:#F97583">=</span><span style="color:#B392F0"> somePromise</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#E1E4E8">k.</span><span style="color:#B392F0">then</span><span style="color:#E1E4E8">((</span><span style="color:#FFAB70">v</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"resolved"</span><span style="color:#E1E4E8">));</span></span></code></pre>
+<p>The execution stack will be something like:</p>
+<ol>
+<li>Module load fn</li>
+<li>somePromise()</li>
+<li><code>then()</code> callback enqueues a callback on the promise</li>
+</ol>
+<p>once the module is loaded, the execution stack is empty and the event loop keeps running until the timer set by <code>setTimeout</code> expires and the promise is resolved. There is a <code>then</code> callback associated with the promise and since the execution stack is empty, the callback is dequeued and executed by the JS engine.</p>
+<p>If my explanation of the Execution stack isn’t clear do not hesitate to checkout the docs on <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model#stack_and_execution_contexts">MDN</a> that explains it with better examples.</p>
+<p>The last qjs function we will look at is the <code>js_promise_then</code> function. This fn handles the <code>promise.then</code> method that sets a callback handler on a Promise. Recall that <code>Promise.then()</code> returns another Promise to supplant/replace our original promise with some extra user-defined processing (such as processing the body of a <code>fetch</code> call etc). <code>js_promise_then</code> creates a new <code>Promise</code> object, chains the promises in a such a way so that when the original promise is resolved, our callback is called and then the new Promise is also resolved</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#E1E4E8"> JSValue </span><span style="color:#B392F0">js_promise_then</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#FFAB70">this_val</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">                               int</span><span style="color:#FFAB70"> argc</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#F97583">*</span><span style="color:#FFAB70">argv</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue ctor, result_promise, </span><span style="color:#FFAB70">resolving_funcs</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> i, ret;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetOpaque2</span><span style="color:#E1E4E8">(ctx, this_val, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">s)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> JS_EXCEPTION;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    ctor </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_SpeciesConstructor</span><span style="color:#E1E4E8">(ctx, this_val, JS_UNDEFINED);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(ctor))</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> ctor;</span></span>
+<span class="line"><span style="color:#E1E4E8">    result_promise </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_new_promise_capability</span><span style="color:#E1E4E8">(ctx, resolving_funcs, ctor);</span></span>
+<span class="line"><span style="color:#B392F0">    JS_FreeValue</span><span style="color:#E1E4E8">(ctx, ctor);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(result_promise))</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> result_promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">    ret </span><span style="color:#F97583">=</span><span style="color:#B392F0"> perform_promise_then</span><span style="color:#E1E4E8">(ctx, this_val, argv,</span></span>
+<span class="line"><span style="color:#E1E4E8">                               (JSValueConst </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">)resolving_funcs);</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">resolving_funcs</span><span style="color:#E1E4E8">[i]);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (ret) {</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, result_promise);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> JS_EXCEPTION;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> result_promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The actual logic of updating the state of the Promise and enqueuing the callback is done in the <code>perform_promise_then</code> function</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#E1E4E8"> __exception </span><span style="color:#F97583">int</span><span style="color:#B392F0"> perform_promise_then</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                            JSValueConst </span><span style="color:#FFAB70">promise</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                            JSValueConst </span><span style="color:#F97583">*</span><span style="color:#FFAB70">resolve_reject</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                            JSValueConst </span><span style="color:#F97583">*</span><span style="color:#FFAB70">cap_resolving_funcs</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetOpaque</span><span style="color:#E1E4E8">(promise, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseReactionData </span><span style="color:#F97583">*</span><span style="color:#FFAB70">rd_array</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">rd;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> i, j;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#FFAB70">    rd_array</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> NULL</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#FFAB70">    rd_array</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> NULL</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        JSValueConst handler;</span></span>
+<span class="line"><span style="color:#E1E4E8">        rd </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_mallocz</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">rd));</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">rd) {</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (i </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">                promise_reaction_data_free</span><span style="color:#E1E4E8">(ctx->rt, </span><span style="color:#FFAB70">rd_array</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8">(j </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; j </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; j</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">            rd->resolving_funcs[j] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_DupValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">cap_resolving_funcs</span><span style="color:#E1E4E8">[j]);</span></span>
+<span class="line"><span style="color:#E1E4E8">        handler </span><span style="color:#F97583">=</span><span style="color:#FFAB70"> resolve_reject</span><span style="color:#E1E4E8">[i];</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">JS_IsFunction</span><span style="color:#E1E4E8">(ctx, handler))</span></span>
+<span class="line"><span style="color:#E1E4E8">            handler </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#E1E4E8">        rd->handler </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_DupValue</span><span style="color:#E1E4E8">(ctx, handler);</span></span>
+<span class="line"><span style="color:#FFAB70">        rd_array</span><span style="color:#E1E4E8">[i] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (s->promise_state </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> JS_PROMISE_PENDING) {</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">            list_add_tail</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#FFAB70">rd_array</span><span style="color:#E1E4E8">[i]->link, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s->promise_reactions[i]);</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        JSValueConst </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (s->promise_state </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> JS_PROMISE_REJECTED </span><span style="color:#F97583">&#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#E1E4E8">s->is_handled) {</span></span>
+<span class="line"><span style="color:#E1E4E8">            JSRuntime </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">rt </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ctx->rt;</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (rt->host_promise_rejection_tracker) {</span></span>
+<span class="line"><span style="color:#E1E4E8">                rt-></span><span style="color:#B392F0">host_promise_rejection_tracker</span><span style="color:#E1E4E8">(ctx, promise, s->promise_result,</span></span>
+<span class="line"><span style="color:#79B8FF">                                                   TRUE</span><span style="color:#E1E4E8">, rt->host_promise_rejection_tracker_opaque);</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">        i </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> s->promise_state </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> JS_PROMISE_FULFILLED;</span></span>
+<span class="line"><span style="color:#E1E4E8">        rd </span><span style="color:#F97583">=</span><span style="color:#FFAB70"> rd_array</span><span style="color:#E1E4E8">[i];</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->resolving_funcs[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->resolving_funcs[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->handler;</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_NewBool</span><span style="color:#E1E4E8">(ctx, i);</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> s->promise_result;</span></span>
+<span class="line"><span style="color:#B392F0">        JS_EnqueueJob</span><span style="color:#E1E4E8">(ctx, promise_reaction_job, </span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">, args);</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">            promise_reaction_data_free</span><span style="color:#E1E4E8">(ctx->rt, </span><span style="color:#FFAB70">rd_array</span><span style="color:#E1E4E8">[i]);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->is_handled </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> TRUE</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>If the promise we set a callback on is yet to fulfilled (<code>state == PENDING</code>), <code>perform_promise_then</code> simply chains the resolve and reject callbacks of our new Promise to that of the previous one. If the promise is already resolved (or rejected), <code>perform_promise_then</code> simply enqueues a microtask with the fulfilled (or rejected) handler to be run when the runtime is running tasks from the microtasks queue.</p>
+<p>This is a lot of information to take in a single blog post, so I shall leave it hanging at this point for now. So far we have understood the following concepts</p>
+<ol>
+<li>A Promise is a JSObject that takes an <code>Executor</code> fn object as argument.</li>
+<li>The <code>Executor</code> fn object takes 2 fns : <code>resolve</code> and <code>reject</code> of class <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code> and <code>JS_CLASS_PROMISE_REJECT_FUNCTION</code> respectively</li>
+<li>The resolve and reject fns have a payload JSPromiseFunctionData that have pointers to the Promise so that the fns can resolve/reject the promise when called.</li>
+<li>When a promise is fulfilled or rejected, all the callbacks associated with promise are enqueued as <code>microtasks</code>.</li>
+<li>When the execution context is empty and there are pending callbacks on promises, the runtime dequeues the callbacks from the microtask queue and executes the callbacks.</li>
+</ol>
+<p>In the next few blog posts, we will take a look at how other Promise methods like <code>resolve</code> , <code>reject</code> , <code>race</code> are built on top of the existing primitives we have discussed so far and then finally build up to the chain of events as to why the initial “bug” occured.</p>  </div> </article> </main> </body></html>

@@ -232,86 +232,86 @@ A <code>JSValue</code> data structure represents a value in Javascript. A value 
 <span class="line"><span style="color:#E1E4E8">s</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">promise_result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
 <span class="line"><span style="color:#B392F0">JS_SetOpaque</span><span style="color:#E1E4E8">(obj, s);</span></span></code></pre>
 <p>Before we call the <code>executor</code> with <code>resolve</code> and <code>reject</code> as arguments, we need to set them up with a reference to the Promise object we just created so that when <code>resolve</code> or <code>reject</code> is called, they can set the state of the Promise appropriately. This is done by the <code>js_create_resolving_functions</code> fn just before the <code>JS_Call(.. executor)</code> to call the executor</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>static int js_create_resolving_functions(JSContext *ctx,</span></span>
-<span class="line"><span>                                         JSValue *resolving_funcs,</span></span>
-<span class="line"><span>                                         JSValueConst promise)</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>{</span></span>
-<span class="line"><span>    JSValue obj;</span></span>
-<span class="line"><span>    JSPromiseFunctionData *s;</span></span>
-<span class="line"><span>    JSPromiseFunctionDataResolved *sr;</span></span>
-<span class="line"><span>    int i, ret;</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>    sr = js_malloc(ctx, sizeof(*sr));</span></span>
-<span class="line"><span>    if (!sr)</span></span>
-<span class="line"><span>        return -1;</span></span>
-<span class="line"><span>    sr->ref_count = 1;</span></span>
-<span class="line"><span>    sr->already_resolved = FALSE; /* must be shared between the two functions */</span></span>
-<span class="line"><span>    ret = 0;</span></span>
-<span class="line"><span>    for(i = 0; i &#x3C; 2; i++) {</span></span>
-<span class="line"><span>        obj = JS_NewObjectProtoClass(ctx, ctx->function_proto,</span></span>
-<span class="line"><span>                                     JS_CLASS_PROMISE_RESOLVE_FUNCTION + i);</span></span>
-<span class="line"><span>        if (JS_IsException(obj))</span></span>
-<span class="line"><span>            goto fail;</span></span>
-<span class="line"><span>        s = js_malloc(ctx, sizeof(*s));</span></span>
-<span class="line"><span>        if (!s) {</span></span>
-<span class="line"><span>            JS_FreeValue(ctx, obj);</span></span>
-<span class="line"><span>        fail:</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>            if (i != 0)</span></span>
-<span class="line"><span>                JS_FreeValue(ctx, resolving_funcs[0]);</span></span>
-<span class="line"><span>            ret = -1;</span></span>
-<span class="line"><span>            break;</span></span>
-<span class="line"><span>        }</span></span>
-<span class="line"><span>        sr->ref_count++;</span></span>
-<span class="line"><span>        s->presolved = sr;</span></span>
-<span class="line"><span>        s->promise = JS_DupValue(ctx, promise);</span></span>
-<span class="line"><span>        JS_SetOpaque(obj, s);</span></span>
-<span class="line"><span>        js_function_set_properties(ctx, obj, JS_ATOM_empty_string, 1);</span></span>
-<span class="line"><span>        resolving_funcs[i] = obj;</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span>    js_promise_resolve_function_free_resolved(ctx->rt, sr);</span></span>
-<span class="line"><span>    return ret;</span></span>
-<span class="line"><span>}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> int</span><span style="color:#B392F0"> js_create_resolving_functions</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                         JSValue </span><span style="color:#F97583">*</span><span style="color:#FFAB70">resolving_funcs</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                         JSValueConst </span><span style="color:#FFAB70">promise</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue obj;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseFunctionData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseFunctionDataResolved </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">sr;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> i, ret;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    sr </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_malloc</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">sr));</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">sr)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    sr->ref_count </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    sr->already_resolved </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> FALSE</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* must be shared between the two functions */</span></span>
+<span class="line"><span style="color:#E1E4E8">    ret </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        obj </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_NewObjectProtoClass</span><span style="color:#E1E4E8">(ctx, ctx->function_proto,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                     JS_CLASS_PROMISE_RESOLVE_FUNCTION </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> i);</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(obj))</span></span>
+<span class="line"><span style="color:#F97583">            goto</span><span style="color:#E1E4E8"> fail;</span></span>
+<span class="line"><span style="color:#E1E4E8">        s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_malloc</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s));</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">s) {</span></span>
+<span class="line"><span style="color:#B392F0">            JS_FreeValue</span><span style="color:#E1E4E8">(ctx, obj);</span></span>
+<span class="line"><span style="color:#E1E4E8">        fail:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (i </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">                JS_FreeValue</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#FFAB70">resolving_funcs</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#E1E4E8">            ret </span><span style="color:#F97583">=</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">            break</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">        sr->ref_count</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        s->presolved </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> sr;</span></span>
+<span class="line"><span style="color:#E1E4E8">        s->promise </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_DupValue</span><span style="color:#E1E4E8">(ctx, promise);</span></span>
+<span class="line"><span style="color:#B392F0">        JS_SetOpaque</span><span style="color:#E1E4E8">(obj, s);</span></span>
+<span class="line"><span style="color:#B392F0">        js_function_set_properties</span><span style="color:#E1E4E8">(ctx, obj, JS_ATOM_empty_string, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#FFAB70">        resolving_funcs</span><span style="color:#E1E4E8">[i] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> obj;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#B392F0">    js_promise_resolve_function_free_resolved</span><span style="color:#E1E4E8">(ctx->rt, sr);</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> ret;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
 <p><code>resolve</code> and <code>reject</code> are sort of special objects with  <code>class_id</code>s <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code>, <code>JS_CLASS_PROMISE_REJECT_FUNCTION</code>. The payload of these objects are of type <code>JSPromiseFunctionData</code></p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>typedef struct JSPromiseFunctionData {</span></span>
-<span class="line"><span>    JSValue promise;</span></span>
-<span class="line"><span>    JSPromiseFunctionDataResolved *presolved;</span></span>
-<span class="line"><span>} JSPromiseFunctionData;</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">typedef</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> JSPromiseFunctionData {</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue promise;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseFunctionDataResolved </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">presolved;</span></span>
+<span class="line"><span style="color:#E1E4E8">} JSPromiseFunctionData;</span></span></code></pre>
 <p>Notice how the resolving functions’ payload tracks a promise and pointer a <code>JSPromiseFunctionDataResolved</code> structure</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>typedef struct JSPromiseFunctionDataResolved {</span></span>
-<span class="line"><span>    int ref_count;</span></span>
-<span class="line"><span>    BOOL already_resolved;</span></span>
-<span class="line"><span>} JSPromiseFunctionDataResolved;</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">typedef</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> JSPromiseFunctionDataResolved {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> ref_count;</span></span>
+<span class="line"><span style="color:#E1E4E8">    BOOL already_resolved;</span></span>
+<span class="line"><span style="color:#E1E4E8">} JSPromiseFunctionDataResolved;</span></span></code></pre>
 <p>The <code>DataResolved</code> object is shared by both the resolve/reject fns so that if you call one after another, they know if the promise has already been resolved or rejected</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span> JSPromiseFunctionDataResolved *sr = js_malloc(ctx, sizeof(*sr));</span></span>
-<span class="line"><span> sr->ref_count = 1;</span></span>
-<span class="line"><span> sr->already_resolved = FALSE; /* must be shared between the two functions */</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#E1E4E8"> JSPromiseFunctionDataResolved </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">sr </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_malloc</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">sr));</span></span>
+<span class="line"><span style="color:#E1E4E8"> sr</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">ref_count </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8"> sr</span><span style="color:#F97583">-></span><span style="color:#E1E4E8">already_resolved </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> FALSE</span><span style="color:#E1E4E8">;</span><span style="color:#6A737D"> /* must be shared between the two functions */</span></span></code></pre>
 <p>When creating each of the <code>resolve</code>/<code>reject</code> fns we intialize the fns each with the shared DataResolved structure and the Promise we created</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>for(i = 0; i &#x3C; 2; i++) {</span></span>
-<span class="line"><span>    obj = JS_NewObjectProtoClass(ctx, ctx->function_proto,</span></span>
-<span class="line"><span>                                 JS_CLASS_PROMISE_RESOLVE_FUNCTION + i);</span></span>
-<span class="line"><span>    s = js_malloc(ctx, sizeof(*s));</span></span>
-<span class="line"><span>    sr->ref_count++;</span></span>
-<span class="line"><span>    s->presolved = sr;</span></span>
-<span class="line"><span>    s->promise = JS_DupValue(ctx, promise);</span></span>
-<span class="line"><span>    JS_SetOpaque(obj, s);</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; i</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    obj </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_NewObjectProtoClass</span><span style="color:#E1E4E8">(ctx, ctx->function_proto,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                 JS_CLASS_PROMISE_RESOLVE_FUNCTION </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> i);</span></span>
+<span class="line"><span style="color:#E1E4E8">    s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_malloc</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s));</span></span>
+<span class="line"><span style="color:#E1E4E8">    sr->ref_count</span><span style="color:#F97583">++</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->presolved </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> sr;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->promise </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_DupValue</span><span style="color:#E1E4E8">(ctx, promise);</span></span>
+<span class="line"><span style="color:#B392F0">    JS_SetOpaque</span><span style="color:#E1E4E8">(obj, s);</span></span></code></pre>
 <p>So to recap, we have</p>
 <ol>
 <li>A Promise that will be resolved/rejected by the <code>executor</code></li>
 <li>A resolve and a reject fn with references to the Promise so that when they are called with a value they know how to resolve the Promise</li>
 </ol>
 <p>We need to return these resolving functions to the caller of <code>js_create_resolving_functions</code>. C functions cannot return multiple values as return values, so the caller creates space in its stack to store references to the resolving functions and passes them as arguments to <code>js_create_resolving_functions</code> which sets these slots to each of the resolving function</p>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>// js_promise_constructor(...) {</span></span>
-<span class="line"><span>JSValue args[2], ret;</span></span>
-<span class="line"><span>executor = argv[0];</span></span>
-<span class="line"><span>obj = js_create_from_ctor(ctx, new_target, JS_CLASS_PROMISE);</span></span>
-<span class="line"><span>//obj.s is the promise that is initialized  as above</span></span>
-<span class="line"><span>// the resolve/reject fns created by js_create_... are captured in args</span></span>
-<span class="line"><span>if (js_create_resolving_functions(ctx, args, obj))</span></span>
-<span class="line"><span>    goto fail;</span></span>
-<span class="line"><span>// args now has resolve and reject fns, call the executor fn with resolve and reject as args</span></span>
-<span class="line"><span>ret = JS_Call(ctx, executor, JS_UNDEFINED, 2, (JSValueConst *)args);</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6A737D">// js_promise_constructor(...) {</span></span>
+<span class="line"><span style="color:#E1E4E8">JSValue </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">], ret;</span></span>
+<span class="line"><span style="color:#E1E4E8">executor </span><span style="color:#F97583">=</span><span style="color:#FFAB70"> argv</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">obj </span><span style="color:#F97583">=</span><span style="color:#B392F0"> js_create_from_ctor</span><span style="color:#E1E4E8">(ctx, new_target, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span style="color:#6A737D">//obj.s is the promise that is initialized  as above</span></span>
+<span class="line"><span style="color:#6A737D">// the resolve/reject fns created by js_create_... are captured in args</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">js_create_resolving_functions</span><span style="color:#E1E4E8">(ctx, args, obj))</span></span>
+<span class="line"><span style="color:#F97583">    goto</span><span style="color:#E1E4E8"> fail;</span></span>
+<span class="line"><span style="color:#6A737D">// args now has resolve and reject fns, call the executor fn with resolve and reject as args</span></span>
+<span class="line"><span style="color:#E1E4E8">ret </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_Call</span><span style="color:#E1E4E8">(ctx, executor, JS_UNDEFINED, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">, (JSValueConst </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">)</span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">);</span></span></code></pre>
 <p>Assume that our <code>executor</code> a JS function, finishes successfully and wishes to resolve the Promise with a value of <code>5</code>. It calls the <code>resolve</code> fn that is passed to it as argument,  with an argument of <code>JSValue {.tag = JS_TAG_INT, .u.int32 = 5}</code>;
 Recall that our <code>resolve</code> fn had a class_id of <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code>. Qjs interpreter when it evaluates a func object of that class_id, dispatches to the function <code>js_promise_resolve_function_call</code>, setting the argument <code>func_obj</code> as the resolve fn</p>
 <p>The logic is straight forward</p>
@@ -320,92 +320,92 @@ Recall that our <code>resolve</code> fn had a class_id of <code>JS_CLASS_PROMISE
 <li>mark the structure shared by the resolved and the reject function as already solved, so that if we call resolve or reject again, we can ignore the changes.
 3.Set the promise as fulfilled using <code>fulfill_or_reject_promise</code>. This fn sets the Promise’s state to Fulfilled or Rejected. If a <code>then</code> callback was previously added to the Promise, (either as <code>.then((v) => {})</code> or as <code>.then((onFulFilled, on Rejected)))</code> , it runs the associated reaction handlers.</li>
 </ol>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>static JSValue js_promise_resolve_function_call(JSContext *ctx,</span></span>
-<span class="line"><span>                                                JSValueConst func_obj,</span></span>
-<span class="line"><span>                                                JSValueConst this_val,</span></span>
-<span class="line"><span>                                                int argc, JSValueConst *argv,</span></span>
-<span class="line"><span>                                                int flags)</span></span>
-<span class="line"><span>{</span></span>
-<span class="line"><span>    JSObject *p = JS_VALUE_GET_OBJ(func_obj);</span></span>
-<span class="line"><span>    JSPromiseFunctionData *s;</span></span>
-<span class="line"><span>    JSValueConst resolution, args[3];</span></span>
-<span class="line"><span>    JSValue then;</span></span>
-<span class="line"><span>    BOOL is_reject;</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>    s = p->u.promise_function_data;</span></span>
-<span class="line"><span>    if (!s || s->presolved->already_resolved)</span></span>
-<span class="line"><span>        return JS_UNDEFINED;</span></span>
-<span class="line"><span>    s->presolved->already_resolved = TRUE;</span></span>
-<span class="line"><span>    is_reject = p->class_id - JS_CLASS_PROMISE_RESOLVE_FUNCTION;</span></span>
-<span class="line"><span>    if (argc > 0)</span></span>
-<span class="line"><span>        resolution = argv[0];</span></span>
-<span class="line"><span>    else</span></span>
-<span class="line"><span>        resolution = JS_UNDEFINED;</span></span>
-<span class="line"><span>    if (is_reject || !JS_IsObject(resolution)) {</span></span>
-<span class="line"><span>        goto done;</span></span>
-<span class="line"><span>    } else if (js_same_value(ctx, resolution, s->promise)) {</span></span>
-<span class="line"><span>        JS_ThrowTypeError(ctx, "promise self resolution");</span></span>
-<span class="line"><span>        goto fail_reject;</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span>    then = JS_GetProperty(ctx, resolution, JS_ATOM_then);</span></span>
-<span class="line"><span>    if (JS_IsException(then)) {</span></span>
-<span class="line"><span>        JSValue error;</span></span>
-<span class="line"><span>    fail_reject:</span></span>
-<span class="line"><span>        error = JS_GetException(ctx);</span></span>
-<span class="line"><span>        reject_promise(ctx, s->promise, error);</span></span>
-<span class="line"><span>        JS_FreeValue(ctx, error);</span></span>
-<span class="line"><span>    } else if (!JS_IsFunction(ctx, then)) {</span></span>
-<span class="line"><span>        JS_FreeValue(ctx, then);</span></span>
-<span class="line"><span>        done:</span></span>
-<span class="line"><span>        fulfill_or_reject_promise(ctx, s->promise, resolution, is_reject);</span></span>
-<span class="line"><span>    } else {</span></span>
-<span class="line"><span>        args[0] = s->promise;</span></span>
-<span class="line"><span>        args[1] = resolution;</span></span>
-<span class="line"><span>        args[2] = then;</span></span>
-<span class="line"><span>        JS_EnqueueJob(ctx, js_promise_resolve_thenable_job, 3, args);</span></span>
-<span class="line"><span>        JS_FreeValue(ctx, then);</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span>    return JS_UNDEFINED;</span></span>
-<span class="line"><span>}</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>```c</span></span>
-<span class="line"><span>static void fulfill_or_reject_promise(JSContext *ctx, JSValueConst promise,</span></span>
-<span class="line"><span>                                      JSValueConst value, BOOL is_reject)</span></span>
-<span class="line"><span>{</span></span>
-<span class="line"><span>    JSPromiseData *s = JS_GetOpaque(promise, JS_CLASS_PROMISE);</span></span>
-<span class="line"><span>    struct list_head *el, *el1;</span></span>
-<span class="line"><span>    JSPromiseReactionData *rd;</span></span>
-<span class="line"><span>    JSValueConst args[5];</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>    set_value(ctx, &#x26;s->promise_result, JS_DupValue(ctx, value));</span></span>
-<span class="line"><span>    s->promise_state = JS_PROMISE_FULFILLED + is_reject;</span></span>
-<span class="line"><span>    ...</span></span>
-<span class="line"><span>    if (s->promise_state == JS_PROMISE_REJECTED &#x26;&#x26; !s->is_handled) {</span></span>
-<span class="line"><span>        JSRuntime *rt = ctx->rt;</span></span>
-<span class="line"><span>        if (rt->host_promise_rejection_tracker) {</span></span>
-<span class="line"><span>            rt->host_promise_rejection_tracker(ctx, promise, value, FALSE,</span></span>
-<span class="line"><span>                                               rt->host_promise_rejection_tracker_opaque);</span></span>
-<span class="line"><span>        }</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span>    // Loop through the linked Callbacks and enqueue them as a microTask</span></span>
-<span class="line"><span>    list_for_each_safe(el, el1, &#x26;s->promise_reactions[is_reject]) {</span></span>
-<span class="line"><span>        rd = list_entry(el, JSPromiseReactionData, link);</span></span>
-<span class="line"><span>        args[0] = rd->resolving_funcs[0];</span></span>
-<span class="line"><span>        args[1] = rd->resolving_funcs[1];</span></span>
-<span class="line"><span>        args[2] = rd->handler;</span></span>
-<span class="line"><span>        args[3] = JS_NewBool(ctx, is_reject);</span></span>
-<span class="line"><span>        args[4] = value;</span></span>
-<span class="line"><span>        JS_EnqueueJob(ctx, promise_reaction_job, 5, args);</span></span>
-<span class="line"><span>        list_del(&#x26;rd->link);</span></span>
-<span class="line"><span>        promise_reaction_data_free(ctx->rt, rd);</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span></span></span>
-<span class="line"><span>    list_for_each_safe(el, el1, &#x26;s->promise_reactions[1 - is_reject]) {</span></span>
-<span class="line"><span>        rd = list_entry(el, JSPromiseReactionData, link);</span></span>
-<span class="line"><span>        list_del(&#x26;rd->link);</span></span>
-<span class="line"><span>        promise_reaction_data_free(ctx->rt, rd);</span></span>
-<span class="line"><span>    }</span></span>
-<span class="line"><span>}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#F97583">static</span><span style="color:#E1E4E8"> JSValue </span><span style="color:#B392F0">js_promise_resolve_function_call</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                                JSValueConst </span><span style="color:#FFAB70">func_obj</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                                JSValueConst </span><span style="color:#FFAB70">this_val</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">                                                int</span><span style="color:#FFAB70"> argc</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#F97583">*</span><span style="color:#FFAB70">argv</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">                                                int</span><span style="color:#FFAB70"> flags</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSObject </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">p </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_VALUE_GET_OBJ</span><span style="color:#E1E4E8">(func_obj);</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseFunctionData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValueConst resolution, </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValue then;</span></span>
+<span class="line"><span style="color:#E1E4E8">    BOOL is_reject;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    s </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> p->u.promise_function_data;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">s </span><span style="color:#F97583">||</span><span style="color:#E1E4E8"> s->presolved->already_resolved)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->presolved->already_resolved </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> TRUE</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    is_reject </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> p->class_id </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> JS_CLASS_PROMISE_RESOLVE_FUNCTION;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        resolution </span><span style="color:#F97583">=</span><span style="color:#FFAB70"> argv</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#F97583">    else</span></span>
+<span class="line"><span style="color:#E1E4E8">        resolution </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (is_reject </span><span style="color:#F97583">||</span><span style="color:#F97583"> !</span><span style="color:#B392F0">JS_IsObject</span><span style="color:#E1E4E8">(resolution)) {</span></span>
+<span class="line"><span style="color:#F97583">        goto</span><span style="color:#E1E4E8"> done;</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">js_same_value</span><span style="color:#E1E4E8">(ctx, resolution, s->promise)) {</span></span>
+<span class="line"><span style="color:#B392F0">        JS_ThrowTypeError</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#9ECBFF">"promise self resolution"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">        goto</span><span style="color:#E1E4E8"> fail_reject;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    then </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetProperty</span><span style="color:#E1E4E8">(ctx, resolution, JS_ATOM_then);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">JS_IsException</span><span style="color:#E1E4E8">(then)) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        JSValue error;</span></span>
+<span class="line"><span style="color:#E1E4E8">    fail_reject:</span></span>
+<span class="line"><span style="color:#E1E4E8">        error </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetException</span><span style="color:#E1E4E8">(ctx);</span></span>
+<span class="line"><span style="color:#B392F0">        reject_promise</span><span style="color:#E1E4E8">(ctx, s->promise, error);</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, error);</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">JS_IsFunction</span><span style="color:#E1E4E8">(ctx, then)) {</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, then);</span></span>
+<span class="line"><span style="color:#E1E4E8">        done:</span></span>
+<span class="line"><span style="color:#B392F0">        fulfill_or_reject_promise</span><span style="color:#E1E4E8">(ctx, s->promise, resolution, is_reject);</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> s->promise;</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> resolution;</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> then;</span></span>
+<span class="line"><span style="color:#B392F0">        JS_EnqueueJob</span><span style="color:#E1E4E8">(ctx, js_promise_resolve_thenable_job, </span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">, args);</span></span>
+<span class="line"><span style="color:#B392F0">        JS_FreeValue</span><span style="color:#E1E4E8">(ctx, then);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> JS_UNDEFINED;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">```c</span></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> fulfill_or_reject_promise</span><span style="color:#E1E4E8">(JSContext </span><span style="color:#F97583">*</span><span style="color:#FFAB70">ctx</span><span style="color:#E1E4E8">, JSValueConst </span><span style="color:#FFAB70">promise</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                      JSValueConst </span><span style="color:#FFAB70">value</span><span style="color:#E1E4E8">, BOOL </span><span style="color:#FFAB70">is_reject</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">s </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_GetOpaque</span><span style="color:#E1E4E8">(promise, JS_CLASS_PROMISE);</span></span>
+<span class="line"><span style="color:#F97583">    struct</span><span style="color:#E1E4E8"> list_head </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">el, </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">el1;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSPromiseReactionData </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">rd;</span></span>
+<span class="line"><span style="color:#E1E4E8">    JSValueConst </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    set_value</span><span style="color:#E1E4E8">(ctx, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s->promise_result, </span><span style="color:#B392F0">JS_DupValue</span><span style="color:#E1E4E8">(ctx, value));</span></span>
+<span class="line"><span style="color:#E1E4E8">    s->promise_state </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> JS_PROMISE_FULFILLED </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> is_reject;</span></span>
+<span class="line"><span style="color:#E1E4E8">    ...</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (s->promise_state </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> JS_PROMISE_REJECTED </span><span style="color:#F97583">&#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#E1E4E8">s->is_handled) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        JSRuntime </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">rt </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ctx->rt;</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (rt->host_promise_rejection_tracker) {</span></span>
+<span class="line"><span style="color:#E1E4E8">            rt-></span><span style="color:#B392F0">host_promise_rejection_tracker</span><span style="color:#E1E4E8">(ctx, promise, value, </span><span style="color:#79B8FF">FALSE</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                                               rt->host_promise_rejection_tracker_opaque);</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#6A737D">    // Loop through the linked Callbacks and enqueue them as a microTask</span></span>
+<span class="line"><span style="color:#B392F0">    list_for_each_safe</span><span style="color:#E1E4E8">(el, el1, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s->promise_reactions[is_reject]) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        rd </span><span style="color:#F97583">=</span><span style="color:#B392F0"> list_entry</span><span style="color:#E1E4E8">(el, JSPromiseReactionData, link);</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->resolving_funcs[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->resolving_funcs[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> rd->handler;</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> JS_NewBool</span><span style="color:#E1E4E8">(ctx, is_reject);</span></span>
+<span class="line"><span style="color:#FFAB70">        args</span><span style="color:#E1E4E8">[</span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> value;</span></span>
+<span class="line"><span style="color:#B392F0">        JS_EnqueueJob</span><span style="color:#E1E4E8">(ctx, promise_reaction_job, </span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">, args);</span></span>
+<span class="line"><span style="color:#B392F0">        list_del</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">rd->link);</span></span>
+<span class="line"><span style="color:#B392F0">        promise_reaction_data_free</span><span style="color:#E1E4E8">(ctx->rt, rd);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    list_for_each_safe</span><span style="color:#E1E4E8">(el, el1, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">s->promise_reactions[</span><span style="color:#79B8FF">1</span><span style="color:#F97583"> -</span><span style="color:#E1E4E8"> is_reject]) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        rd </span><span style="color:#F97583">=</span><span style="color:#B392F0"> list_entry</span><span style="color:#E1E4E8">(el, JSPromiseReactionData, link);</span></span>
+<span class="line"><span style="color:#B392F0">        list_del</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">rd->link);</span></span>
+<span class="line"><span style="color:#B392F0">        promise_reaction_data_free</span><span style="color:#E1E4E8">(ctx->rt, rd);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
 <p>There are 2 more items we will explore in this blog post before taking a break <code>JS_EnqueueJob</code> and <code>js_promise_then</code> - the function that handles when a callback is set on a Promise using the <code>.then</code> method on a Promise</p>
 <h4 id="microtask-queues-and-promises">Microtask queues and Promises</h4>
 <p>Most of you might be familiar (if not used) the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide">Microtask Queue API</a> in Javascript. The microtasks are functions/tasks that are run when the execution stack is empty: that is your JS runtime has finished loading a modules and all the function calls starting from some <code>main</code> and is waiting for the event loop to terminate. While the runtime polls the event loop, if there are any callbacks associated with timers or promises are ready to be executed, the runtime dequeues these microtasks and execute them. NodeJS for example exposes this <code>queueMicrotask</code> as an API to the programmers so that programmers can schedule microtasks as needed. This however, seems to be a custom API that is not defined in the specification. QuickJs does not expose a <code>queueMicrotask</code> API, but the <code>JS_EnqueueJob</code> calls in the code we see above basically enqueues promise reactions as microtasks.</p>
@@ -515,8 +515,8 @@ Recall that our <code>resolve</code> fn had a class_id of <code>JS_CLASS_PROMISE
 <p>This is a lot of information to take in a single blog post, so I shall leave it hanging at this point for now. So far we have understood the following concepts</p>
 <ol>
 <li>A Promise is a JSObject that takes an <code>Executor</code> fn object as argument.</li>
-<li>The <code>Executor</code> fn object takes 2 fns : <code>resolve</code> and <code>reject</code> of class <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code> and <code>JS_CLASS_PROMISE_REJECT_FUNCTION</code> respectively</li>
-<li>The resolve and reject fns have a payload JSPromiseFunctionData that have pointers to the Promise so that the fns can resolve/reject the promise when called.</li>
+<li>The <code>Executor</code> fn object takes 2 fns : <code>resolve</code> and <code>reject</code> of class <code>JS_CLASS_PROMISE_RESOLVE_FUNCTION</code> and <code>JS_CLASS_PROMISE_REJECT_FUNCTION</code> respectively as arguments</li>
+<li>The resolve and reject fns have a payload of type <code>JSPromiseFunctionData</code> that have pointers to the Promise so that the fns can resolve/reject the promise when called.</li>
 <li>When a promise is fulfilled or rejected, all the callbacks associated with promise are enqueued as <code>microtasks</code>.</li>
 <li>When the execution context is empty and there are pending callbacks on promises, the runtime dequeues the callbacks from the microtask queue and executes the callbacks.</li>
 </ol>
